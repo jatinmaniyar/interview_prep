@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+
+# Node
+node_modules/
+dist/
+
+# DB + scraped artifacts (do not redistribute)
+data/interview.db
+data/raw_html/
+data/external/
+data/spend.log
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
