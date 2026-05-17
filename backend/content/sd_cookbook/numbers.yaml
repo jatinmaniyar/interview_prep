@@ -1,0 +1,93 @@
+section: numbers
+title: Back-of-Envelope Numbers
+display: numbers
+sources:
+  - Jeff Dean "Numbers everyone should know" (Google, 2012; cited in DDIA + system-design-primer)
+  - Hello Interview cheatsheet
+  - Peter Norvig's latency numbers
+description: >
+  Memorize the orders of magnitude — you should rattle these off mid-interview
+  without thinking. The exact values are dated; the orders of magnitude are
+  what matter.
+
+groups:
+  - heading: Latency (one operation)
+    table:
+      headers: [Operation, Time, Note]
+      rows:
+        - [L1 cache reference, 0.5 ns, "~"]
+        - [Branch mispredict, 5 ns, "~"]
+        - [L2 cache reference, 7 ns, ~14× L1]
+        - [Mutex lock/unlock, 25 ns, "~"]
+        - [Main memory reference, 100 ns, ~20× L2]
+        - [Compress 1 KB with Zippy/Snappy, 3 µs, "~"]
+        - [Send 1 KB over 1 Gbps network, 10 µs, "~"]
+        - [Read 4 KB from SSD (random), 150 µs, "~"]
+        - [Read 1 MB sequentially from RAM, 250 µs, "~"]
+        - [Round trip within same datacenter, 500 µs, "~"]
+        - [Read 1 MB sequentially from SSD, 1 ms, ~4× RAM]
+        - [Disk seek (HDD), 10 ms, very slow]
+        - [Read 1 MB sequentially from HDD, 20 ms, "~"]
+        - [Round trip CA → Netherlands, 150 ms, speed of light]
+
+  - heading: Throughput rules of thumb
+    table:
+      headers: [System, Rough QPS, Note]
+      rows:
+        - [Single L7 LB (nginx/envoy), 50k–200k, "Per node, mostly proxying."]
+        - [Single Redis instance, 100k+, "Single-threaded; pipeline for higher."]
+        - [Single PostgreSQL primary, 5k–50k, "Workload-dependent."]
+        - [Single Cassandra node, 10k–30k writes/s, "Linear with cluster size."]
+        - [Single Kafka broker, 100k+ msgs/s, "Sequential-write friendly."]
+        - [Single Elasticsearch node, 1k–10k indexing/s, "Heavier than KV."]
+        - [Single web server (Go/Java), 10k+ rps, "Hello-world; lower with real work."]
+
+  - heading: Powers of two (for storage / RAM math)
+    table:
+      headers: [Power, Approx, Name]
+      rows:
+        - ["2^10", "1 K (~1000)", Kilo]
+        - ["2^20", "1 M (~1 million)", Mega]
+        - ["2^30", "1 G (~1 billion)", Giga]
+        - ["2^32", "4.3 G", "(uint32 max)"]
+        - ["2^40", "1 T", Tera]
+        - ["2^50", "1 P", Peta]
+        - ["2^53", "9 × 10^15", "(JS Number safe-int)"]
+        - ["2^63", "9.2 × 10^18", "(int64 max)"]
+
+  - heading: Conversions you forget mid-interview
+    table:
+      headers: [Item, Value]
+      rows:
+        - [Seconds in a day, "86,400 (~10^5)"]
+        - [Seconds in a year, "~31.5M (~3×10^7)"]
+        - [Bytes in a UTF-8 char, "1–4 (avg ~1.5 for English)"]
+        - [Tweet size, "~300 bytes"]
+        - [HD photo, "~3 MB"]
+        - [4K video minute, "~350 MB"]
+        - [Standard row in a DB, "~1 KB"]
+        - [Bandwidth — 1 Gbps, "~125 MB/s"]
+        - [Bandwidth — 10 Gbps, "~1.25 GB/s"]
+
+  - heading: Estimation shortcuts
+    table:
+      headers: [Quantity, Formula, Worked example]
+      rows:
+        - ["Peak QPS", "(DAU × actions/day / 86400) × 3-5", "100M DAU × 5 actions ÷ 86400 × 3 ≈ 17k QPS peak"]
+        - ["Storage / year", "items/day × bytes × 365", "100M tweets × 300 B × 365 ≈ 11 TB/yr"]
+        - ["Bandwidth", "QPS × payload size", "10k QPS × 3 KB = 30 MB/s"]
+        - ["Working-set RAM", "hot rows × row size × replication", "10M × 1 KB × 2 = 20 GB"]
+
+  - heading: Sanity SLAs
+    table:
+      headers: [Tier, p99 latency, Availability]
+      rows:
+        - ["Cache hit", "< 5 ms", "—"]
+        - ["DB read (indexed)", "< 30 ms", "—"]
+        - ["DB write (1 row)", "< 50 ms", "—"]
+        - ["Public web API", "< 200 ms", "—"]
+        - ["Search query", "< 100 ms", "—"]
+        - ["Cross-region call", "100–300 ms", "—"]
+        - ["3 nines", "—", "8.76 hr down/yr"]
+        - ["4 nines", "—", "52 min down/yr"]
+        - ["5 nines", "—", "5 min down/yr"]

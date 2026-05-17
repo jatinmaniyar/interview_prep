@@ -1,0 +1,189 @@
+section: tradeoffs
+title: Trade-offs Cheatsheet
+display: compare
+sources:
+  - Designing Data-Intensive Applications (Kleppmann)
+  - Martin Fowler (monolithFirst, microservices, CAP)
+  - High Scalability case studies
+  - ByteByteGo
+description: >
+  No system design is right or wrong — only well-defended or hand-wavy.
+  When you make a choice, name the trade-off explicitly. These are the
+  most-asked side-by-side compares.
+
+entries:
+  - name: SQL vs NoSQL
+    left:
+      title: SQL
+      points:
+        - Strong consistency, ACID, joins
+        - Mature ecosystem, complex queries
+        - Vertical scale easy; horizontal needs sharding work
+        - Schema enforced; migrations explicit
+    right:
+      title: NoSQL
+      points:
+        - Horizontal scale built-in; high write throughput
+        - Schema flexible; denormalized
+        - Eventual or tunable consistency typical
+        - Limited joins; query patterns must be known upfront
+    pick: "SQL for transactional core. NoSQL for write-heavy or massive scale with simple access patterns."
+
+  - name: Synchronous vs Asynchronous
+    left:
+      title: Sync
+      points:
+        - Immediate response; simple control flow
+        - Easier to debug, easier to reason
+        - Caller blocks on slow downstream
+    right:
+      title: Async
+      points:
+        - Decouples producer / consumer
+        - Absorbs spikes via queue
+        - Adds operational complexity (retries, ordering, DLQ)
+    pick: "Sync for user-facing reads. Async for fan-out, side-effects, slow tasks."
+
+  - name: Strong vs Eventual Consistency
+    left:
+      title: Strong
+      points:
+        - Read sees latest write
+        - Higher latency; coordination cost
+        - Often needs single leader or consensus
+    right:
+      title: Eventual
+      points:
+        - Lower latency, higher availability
+        - Reads may be stale briefly
+        - Replicas converge; conflict resolution required
+    pick: "Strong for $$ / inventory / auth. Eventual for feeds / counters / search."
+
+  - name: Push vs Pull
+    left:
+      title: Push (Fanout-on-write)
+      points:
+        - Reader gets fresh data immediately
+        - Write amplification for fan-out targets
+        - Hard for users with millions of followers
+    right:
+      title: Pull (Fanout-on-read)
+      points:
+        - Cheap writes
+        - Expensive reads (aggregate at query time)
+        - Stale until query
+    pick: "Push for active users / chat. Pull for celebrities / inactive feeds. Hybrid is common."
+
+  - name: Monolith vs Microservices
+    left:
+      title: Monolith
+      points:
+        - Simple deploy, single repo, easy refactors
+        - In-process calls; transactional consistency
+        - Scaling = scale the whole thing
+    right:
+      title: Microservices
+      points:
+        - Independent deploy, team autonomy
+        - Independent scaling per service
+        - Network calls, distributed-system pain, ops cost
+    pick: "Monolith-first. Split out only services with distinct scaling or lifecycle pressure."
+
+  - name: Normalized vs Denormalized
+    left:
+      title: Normalized
+      points:
+        - No update anomalies; single source of truth
+        - Joins required for query
+        - Smaller storage
+    right:
+      title: Denormalized
+      points:
+        - Reads are cheap (no joins)
+        - Writes update many places
+        - Larger storage; redundancy
+    pick: "Normalize OLTP. Denormalize OLAP / read-heavy feeds. Pre-compute hot reads."
+
+  - name: REST vs gRPC vs GraphQL
+    left:
+      title: REST
+      points:
+        - Ubiquitous, easy to debug, HTTP cache
+        - Verbose payloads, fixed shape per endpoint
+    right:
+      title: gRPC
+      points:
+        - Binary, fast, schema-typed (protobuf)
+        - Streaming; multiplexed
+        - Worse from browsers (needs proxy)
+    extra:
+      title: GraphQL
+      points:
+        - Client picks fields; reduces over-fetching
+        - One endpoint; complex caching; N+1 risk on backend
+    pick: "REST for public APIs. gRPC for internal east-west. GraphQL when clients are heterogeneous."
+
+  - name: SQL Replication — Sync vs Async
+    left:
+      title: Sync
+      points:
+        - Zero data loss on failover
+        - Writer waits for replica ack — latency hit
+    right:
+      title: Async
+      points:
+        - Fast writes; latency wins
+        - Replica lag → possible data loss on failover
+    pick: "Async for general use; semi-sync as a balance. Sync only when zero RPO required."
+
+  - name: Single Region vs Multi-Region
+    left:
+      title: Single Region
+      points:
+        - Simple; low latency within region
+        - Region outage = full outage
+    right:
+      title: Multi-Region
+      points:
+        - Survives regional failure; lower global latency
+        - Cross-region replication cost, consistency complexity, $$$
+    pick: "Single region until SLA / compliance forces multi-region."
+
+  - name: At-Least-Once vs Exactly-Once Delivery
+    left:
+      title: At-least-once
+      points:
+        - Cheap, easy; retries on doubt
+        - Consumers must be idempotent
+    right:
+      title: Exactly-once
+      points:
+        - Strong semantics; complex (transactions, dedup state)
+        - Higher latency; usually within a closed system (Kafka EOS)
+    pick: "At-least-once + idempotent consumer is the default. Exactly-once only when truly required."
+
+  - name: ACID vs BASE
+    left:
+      title: ACID
+      points:
+        - Atomic, Consistent, Isolated, Durable
+        - Strong guarantees; pays in latency / availability
+    right:
+      title: BASE
+      points:
+        - Basically Available, Soft state, Eventual consistency
+        - Optimized for scale & availability
+    pick: "ACID for core; BASE for everything tolerant of brief inconsistency."
+
+  - name: Pessimistic vs Optimistic Locking
+    left:
+      title: Pessimistic
+      points:
+        - Lock first, then act; serializes contention
+        - Deadlocks possible; blocking
+    right:
+      title: Optimistic
+      points:
+        - Compare-and-swap on version; retry on conflict
+        - Great when contention is low; pathological under heavy contention
+    pick: "Optimistic by default. Pessimistic for hot rows or strict ordering."

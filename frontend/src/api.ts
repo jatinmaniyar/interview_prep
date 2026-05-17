@@ -59,6 +59,14 @@ export async function listProblems(params: URLSearchParams): Promise<ProblemSumm
   return r.json();
 }
 
+export type CompanyOption = { company: string; count: number };
+
+export async function listCompanies(): Promise<CompanyOption[]> {
+  const r = await fetch(`${API}/companies`);
+  if (!r.ok) throw new Error(`companies failed: ${r.status}`);
+  return r.json();
+}
+
 export async function getProblem(id: number): Promise<ProblemDetailT> {
   const r = await fetch(`${API}/problems/${id}`);
   if (!r.ok) throw new Error(`get failed: ${r.status}`);
@@ -90,5 +98,56 @@ export async function submitCode(
     body: JSON.stringify({ problem_id, language, code }),
   });
   if (!r.ok) throw new Error(`submit failed: ${r.status}`);
+  return r.json();
+}
+
+// ---------- SD Cookbook ----------
+
+export type SDProblemSummary = {
+  id: number;
+  title: string;
+  type: "hld" | "lld";
+  topic: string | null;
+  difficulty: string | null;
+  summary: string | null;
+  tags: string[];
+  companies: string[];
+};
+
+export type SDCookbookResponse = {
+  sections: {
+    section: string;
+    title: string;
+    display: string;
+    description?: string;
+    sources?: string[];
+    entries?: unknown[];
+    groups?: unknown[];
+  }[];
+};
+
+export async function listSDProblems(
+  params: URLSearchParams
+): Promise<SDProblemSummary[]> {
+  const r = await fetch(`${API}/sd-problems?${params}`);
+  if (!r.ok) throw new Error(`sd list failed: ${r.status}`);
+  return r.json();
+}
+
+export async function listSDCompanies(): Promise<CompanyOption[]> {
+  const r = await fetch(`${API}/sd-companies`);
+  if (!r.ok) throw new Error(`sd companies failed: ${r.status}`);
+  return r.json();
+}
+
+export async function listSDTopics(): Promise<{ topic: string; count: number }[]> {
+  const r = await fetch(`${API}/sd-topics`);
+  if (!r.ok) throw new Error(`sd topics failed: ${r.status}`);
+  return r.json();
+}
+
+export async function getSDCookbook(): Promise<SDCookbookResponse> {
+  const r = await fetch(`${API}/sd-cookbook`);
+  if (!r.ok) throw new Error(`sd cookbook failed: ${r.status}`);
   return r.json();
 }

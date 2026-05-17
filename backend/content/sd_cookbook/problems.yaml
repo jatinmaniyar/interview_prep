@@ -1,0 +1,778 @@
+# SD Cookbook — Problem Inventory
+#
+# Names + company tags + scope hint only. NO solutions.
+# Sources (for problem-name canon and company-tag patterns):
+#   - donnemartin/system-design-primer
+#   - ashishps1/awesome-low-level-design
+#   - madd86/awesome-system-design
+#   - prasadgujar/low-level-design-primer
+#   - tssovi/grokking-the-object-oriented-design-interview
+#   - Hello Interview problem set (https://www.hellointerview.com)
+#   - workat.tech/machine-coding indexed slugs
+# Company tags are Claude-synthesized from public interview-experience
+# patterns (LeetCode Discuss, TeamBlind, Glassdoor, Reddit r/cscareerquestions,
+# Exponent company guides) — best inference, not real-time citations.
+
+sources:
+  - donnemartin/system-design-primer
+  - ashishps1/awesome-low-level-design
+  - madd86/awesome-system-design
+  - prasadgujar/low-level-design-primer
+  - tssovi/grokking-the-object-oriented-design-interview
+  - Hello Interview
+  - workat.tech/machine-coding
+
+problems:
+  # ---------------------------------------------------------------- LLD ----
+  - title: Design Parking Lot
+    type: lld
+    difficulty: Medium
+    topic: physical-systems
+    summary: Multi-level lot, vehicle types, spot allocation, concurrent entry/exit, billing
+    companies: [Amazon, Google, Microsoft, Apple, Uber, Goldman Sachs, Atlassian]
+    tags: [singleton, factory, state, concurrency]
+
+  - title: Design Elevator System
+    type: lld
+    difficulty: Hard
+    topic: physical-systems
+    summary: Multi-elevator scheduling, request queueing, direction policies, peak-hour optimization
+    companies: [Amazon, Google, Microsoft, Uber, Flipkart, Goldman Sachs]
+    tags: [state, strategy, scheduling, concurrency]
+
+  - title: Design ATM
+    type: lld
+    difficulty: Medium
+    topic: financial
+    summary: Card auth, balance/withdraw/deposit flows, cash dispensing, transaction logging
+    companies: [Amazon, JP Morgan, Goldman Sachs, Visa, Mastercard, Capital One, Wells Fargo]
+    tags: [state, command, transactional]
+
+  - title: Design Vending Machine
+    type: lld
+    difficulty: Easy
+    topic: physical-systems
+    summary: Product inventory, coin handling, state transitions (idle/selecting/dispensing)
+    companies: [Amazon, Microsoft, Adobe, Goldman Sachs, Walmart]
+    tags: [state, strategy]
+
+  - title: Design Coffee Vending Machine
+    type: lld
+    difficulty: Easy
+    topic: physical-systems
+    summary: Beverage menu, ingredient inventory, concurrent orders, refill workflow
+    companies: [Amazon, Swiggy, Flipkart, Razorpay]
+    tags: [factory, builder, observer]
+
+  - title: Design Library Management System
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Book catalog, member accounts, lending policies, reservations, fines
+    companies: [Amazon, Microsoft, Oracle, IBM, Salesforce, Adobe]
+    tags: [factory, strategy, observer]
+
+  - title: Design Hotel Management System
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Rooms, reservations, check-in/out, billing, housekeeping
+    companies: [Booking.com, Airbnb, MakeMyTrip, Marriott, Amazon, Oracle]
+    tags: [factory, observer, state]
+
+  - title: Design Restaurant Management System
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Menu, tables, orders, kitchen workflow, billing, reservations
+    companies: [Swiggy, Zomato, DoorDash, Uber Eats, Amazon, Oracle]
+    tags: [observer, state, command]
+
+  - title: Design Movie Ticket Booking System
+    type: lld
+    difficulty: Medium
+    topic: booking
+    summary: Seat selection, hold/lock semantics, payment, concurrent booking conflicts
+    companies: [BookMyShow, Amazon, Paytm, Razorpay, Atlassian, Uber]
+    tags: [concurrency, state, observer]
+
+  - title: Design Online Shopping (Amazon)
+    type: lld
+    difficulty: Hard
+    topic: e-commerce
+    summary: Catalog, cart, inventory, orders, payment, shipping, reviews
+    companies: [Amazon, Flipkart, Walmart, eBay, Etsy, Shopify, Wayfair]
+    tags: [composite, observer, strategy, command]
+
+  - title: Design Food Delivery Service
+    type: lld
+    difficulty: Hard
+    topic: e-commerce
+    summary: Restaurants, menus, orders, delivery dispatch, real-time tracking
+    companies: [DoorDash, Uber Eats, Swiggy, Zomato, Instacart, Grubhub]
+    tags: [state, observer, strategy, factory]
+
+  - title: Design Ride Sharing Service (Uber)
+    type: lld
+    difficulty: Hard
+    topic: matching
+    summary: Rider/driver matching, surge pricing, trip lifecycle, geo-indexing
+    companies: [Uber, Lyft, Ola, Bolt, DiDi, Grab]
+    tags: [state, observer, strategy, geo]
+
+  - title: Design Pub-Sub System
+    type: lld
+    difficulty: Hard
+    topic: messaging
+    summary: Topics, subscribers, message delivery semantics, fan-out, backpressure
+    companies: [Amazon, Google, Microsoft, Confluent, Cloudflare, Stripe]
+    tags: [observer, mediator, concurrency]
+
+  - title: Design Logging Framework
+    type: lld
+    difficulty: Medium
+    topic: infrastructure
+    summary: Log levels, appenders (file/console/network), filtering, async writes
+    companies: [Amazon, Google, Splunk, Datadog, Microsoft, LinkedIn]
+    tags: [chain-of-responsibility, decorator, strategy, singleton]
+
+  - title: Design Rate Limiter
+    type: lld
+    difficulty: Medium
+    topic: infrastructure
+    summary: Token bucket / leaky bucket / sliding window, per-key isolation, thread safety
+    companies: [Amazon, Google, Stripe, Cloudflare, Twitter, GitHub, Uber]
+    tags: [strategy, concurrency, algorithms]
+
+  - title: Design LRU Cache
+    type: lld
+    difficulty: Medium
+    topic: data-structures
+    summary: O(1) get/put with capacity bound; doubly-linked list + hashmap
+    companies: [Amazon, Google, Microsoft, Meta, Apple, Bloomberg, Two Sigma]
+    tags: [data-structure, concurrency]
+
+  - title: Design LFU Cache
+    type: lld
+    difficulty: Hard
+    topic: data-structures
+    summary: Eviction by least-frequently-used, frequency buckets, tie-break by recency
+    companies: [Amazon, Google, Meta, Microsoft, Bloomberg]
+    tags: [data-structure, algorithms]
+
+  - title: Design Tic-Tac-Toe
+    type: lld
+    difficulty: Easy
+    topic: games
+    summary: Board state, players, win/draw detection, extensibility to NxN
+    companies: [Amazon, Microsoft, Google, Adobe, Goldman Sachs]
+    tags: [state, strategy]
+
+  - title: Design Chess Game
+    type: lld
+    difficulty: Hard
+    topic: games
+    summary: Pieces with movement rules, board, turn order, check/checkmate, history
+    companies: [Amazon, Microsoft, Google, Bloomberg, Goldman Sachs]
+    tags: [factory, state, strategy, command]
+
+  - title: Design Snake and Ladder
+    type: lld
+    difficulty: Easy
+    topic: games
+    summary: Board, dice, players, jump rules, turn rotation, win detection
+    companies: [Amazon, Microsoft, Flipkart, Walmart]
+    tags: [state, strategy]
+
+  - title: Design 2048 Game
+    type: lld
+    difficulty: Medium
+    topic: games
+    summary: Grid state, move/merge logic, undo, win/lose detection
+    companies: [Amazon, Microsoft, Adobe, Uber]
+    tags: [state, command, memento]
+
+  - title: Design Stack Overflow
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Questions, answers, voting, comments, tags, reputation, badges
+    companies: [Amazon, Stack Overflow, Microsoft, GitHub, Atlassian]
+    tags: [observer, composite, strategy]
+
+  - title: Design Splitwise
+    type: lld
+    difficulty: Medium
+    topic: financial
+    summary: Users, groups, expenses, split strategies (equal/exact/percent), debt simplification
+    companies: [Splitwise, Uber, Google, Stripe, Amazon, Cred, Razorpay]
+    tags: [strategy, composite, graph]
+
+  - title: Design Online Auction System
+    type: lld
+    difficulty: Medium
+    topic: e-commerce
+    summary: Listings, bids, auction lifecycle, notifications, anti-sniping rules
+    companies: [eBay, Amazon, Sotheby's, Flipkart]
+    tags: [observer, state, strategy]
+
+  - title: Design Online Stock Brokerage
+    type: lld
+    difficulty: Hard
+    topic: financial
+    summary: Accounts, orders (market/limit/stop), order matching, portfolio, trade history
+    companies: [Robinhood, Coinbase, Goldman Sachs, Morgan Stanley, Two Sigma, Citadel, Bloomberg]
+    tags: [strategy, observer, state, concurrency]
+
+  - title: Design Car Rental
+    type: lld
+    difficulty: Medium
+    topic: booking
+    summary: Vehicle inventory, reservations, pricing, returns, damage tracking
+    companies: [Enterprise, Hertz, Avis, Amazon, Uber]
+    tags: [factory, state, strategy]
+
+  - title: Design Airline Management
+    type: lld
+    difficulty: Hard
+    topic: booking
+    summary: Flights, schedules, aircraft, crew, seat allocation, booking, baggage
+    companies: [Amazon, Sabre, Expedia, MakeMyTrip, United, Delta, Booking.com]
+    tags: [composite, factory, observer]
+
+  - title: Design Cricinfo / Scoreboard
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Match/innings/over/ball, scoring, commentary, player stats, live updates
+    companies: [Disney+ Hotstar, ESPN, Star Sports, Sony, JioCinema]
+    tags: [observer, composite, state]
+
+  - title: Design LinkedIn
+    type: lld
+    difficulty: Hard
+    topic: social
+    summary: Profiles, connections, posts, messaging, search, recommendations
+    companies: [LinkedIn, Microsoft, Indeed, Glassdoor]
+    tags: [graph, observer, strategy]
+
+  - title: Design Concert Ticket Booking
+    type: lld
+    difficulty: Medium
+    topic: booking
+    summary: Events, venues, seat maps, hold/purchase flow, dynamic pricing
+    companies: [Ticketmaster, BookMyShow, StubHub, SeatGeek, Live Nation]
+    tags: [state, observer, concurrency]
+
+  - title: Design Music Streaming Service
+    type: lld
+    difficulty: Medium
+    topic: media
+    summary: Catalog, playlists, playback queue, recommendations, offline mode
+    companies: [Spotify, Apple Music, YouTube Music, Amazon Music, Pandora, Wynk]
+    tags: [observer, strategy, composite]
+
+  - title: Design Course Registration System
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Courses, sections, prerequisites, enrollment, waitlists, schedules
+    companies: [Coursera, Udemy, edX, Khan Academy, BYJU'S, Amazon]
+    tags: [graph, observer, factory]
+
+  - title: Design Digital Wallet
+    type: lld
+    difficulty: Medium
+    topic: financial
+    summary: Accounts, top-up, transfers, transaction history, KYC, idempotency
+    companies: [Paytm, PhonePe, Google Pay, Stripe, PayPal, Cred, Razorpay, Square]
+    tags: [transactional, state, observer, idempotency]
+
+  - title: Design Traffic Signal Controller
+    type: lld
+    difficulty: Medium
+    topic: physical-systems
+    summary: Multi-direction signals, timing strategies, emergency override, sensor input
+    companies: [Amazon, Google, Microsoft, Cisco, Bosch]
+    tags: [state, strategy, observer]
+
+  - title: Design Task Management System (Jira-lite)
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Projects, tasks, assignees, status workflow, comments, sprints
+    companies: [Atlassian, Asana, Monday.com, ClickUp, Microsoft, Linear]
+    tags: [state, observer, composite]
+
+  - title: Design Snake Game
+    type: lld
+    difficulty: Medium
+    topic: games
+    summary: Grid, snake state, food spawn, collision detection, score
+    companies: [Amazon, Microsoft, Nokia, Google]
+    tags: [state, strategy]
+
+  - title: Design Blackjack & Deck of Cards
+    type: lld
+    difficulty: Medium
+    topic: games
+    summary: Cards, deck, shuffle, players, dealer, game flow, betting
+    companies: [Amazon, Microsoft, Apple, Bloomberg]
+    tags: [factory, strategy, state]
+
+  - title: Design Notification System (LLD)
+    type: lld
+    difficulty: Medium
+    topic: messaging
+    summary: Channels (email/SMS/push), templates, user preferences, retry, dedup
+    companies: [Amazon, Twilio, SendGrid, Stripe, Notion, Slack, Atlassian]
+    tags: [strategy, observer, chain-of-responsibility]
+
+  - title: Design In-Memory Key-Value Store
+    type: lld
+    difficulty: Hard
+    topic: data-structures
+    summary: Get/set/delete, TTL, eviction policies, concurrency, persistence hooks
+    companies: [Redis Labs, Amazon, Google, Cloudflare, Bloomberg]
+    tags: [data-structure, concurrency, ttl]
+
+  - title: Design Distributed Queue (LLD)
+    type: lld
+    difficulty: Hard
+    topic: messaging
+    summary: Enqueue/dequeue, ordering, ack semantics, retries, dead-letter queue
+    companies: [Amazon, Google, Confluent, Cloudflare, RabbitMQ]
+    tags: [concurrency, state, observer]
+
+  - title: Design Chess Validator
+    type: lld
+    difficulty: Medium
+    topic: games
+    summary: Validate moves against rules without driving full game flow
+    companies: [Amazon, Microsoft, Google, Adobe]
+    tags: [strategy, chain-of-responsibility]
+
+  - title: Design Inventory Management System
+    type: lld
+    difficulty: Medium
+    topic: e-commerce
+    summary: SKUs, stock levels across warehouses, reservations, restock alerts
+    companies: [Amazon, Walmart, Flipkart, Shopify, Wayfair, Target]
+    tags: [observer, state, transactional]
+
+  - title: Design Calendar / Scheduling
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Events, recurrence rules, conflict detection, invites, time zones
+    companies: [Google, Microsoft, Apple, Zoom, Calendly, Atlassian]
+    tags: [composite, observer, strategy]
+
+  - title: Design Trello / Kanban Board
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Boards, lists, cards, drag/drop, comments, attachments, real-time sync
+    companies: [Atlassian, Asana, Monday.com, ClickUp, Notion]
+    tags: [composite, observer, command]
+
+  - title: Design Online Exam System
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Questions, exam sessions, timing, randomization, scoring, proctoring hooks
+    companies: [HackerRank, Coursera, edX, Pearson, Amazon, BYJU'S]
+    tags: [factory, observer, state]
+
+  - title: Design Linux-style File System
+    type: lld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Inodes, directories, files, permissions, mkdir/ls/rm, path resolution
+    companies: [Amazon, Google, Microsoft, Apple, Cloudflare]
+    tags: [composite, tree, strategy]
+
+  - title: Design Autocomplete / Typeahead
+    type: lld
+    difficulty: Medium
+    topic: data-structures
+    summary: Trie-backed prefix search, ranking by frequency, concurrent updates
+    companies: [Google, Amazon, Meta, Microsoft, Yelp, Pinterest, LinkedIn]
+    tags: [trie, ranking, concurrency]
+
+  - title: Design Concurrent HashMap
+    type: lld
+    difficulty: Hard
+    topic: concurrency
+    summary: Bucket striping, segment locks, resize coordination, lock-free reads
+    companies: [Amazon, Google, Oracle, Bloomberg, Two Sigma, Jane Street]
+    tags: [concurrency, data-structure]
+
+  - title: Design Thread-safe Bounded Buffer
+    type: lld
+    difficulty: Medium
+    topic: concurrency
+    summary: Producer-consumer with capacity limit, conditions/semaphores, fairness
+    companies: [Amazon, Google, Microsoft, Bloomberg, Goldman Sachs]
+    tags: [concurrency, monitor]
+
+  - title: Design Object Pool
+    type: lld
+    difficulty: Medium
+    topic: infrastructure
+    summary: Reusable resource pool, acquire/release, eviction, growth/shrink policies
+    companies: [Amazon, Oracle, IBM, Pivotal, Microsoft]
+    tags: [object-pool, concurrency, strategy]
+
+  - title: Design Hospital Management System
+    type: lld
+    difficulty: Medium
+    topic: domain-modeling
+    summary: Patients, doctors, appointments, departments, billing, prescriptions
+    companies: [Amazon, Oracle, Epic Systems, Cerner, Practo]
+    tags: [factory, observer, state]
+
+  - title: Design Pizza Restaurant Builder
+    type: lld
+    difficulty: Easy
+    topic: domain-modeling
+    summary: Configurable pizza (base/sauce/toppings), pricing, builder pattern showcase
+    companies: [Domino's, Pizza Hut, Swiggy, Uber Eats]
+    tags: [builder, decorator]
+
+  - title: Design Distributed ID Generator
+    type: lld
+    difficulty: Medium
+    topic: infrastructure
+    summary: Snowflake-style 64-bit IDs, clock-skew handling, multi-datacenter
+    companies: [Twitter, Discord, Instagram, Sony, Amazon, Stripe]
+    tags: [algorithms, distributed, time]
+
+  # ---------------------------------------------------------------- HLD ----
+  - title: Design URL Shortener (TinyURL/bit.ly)
+    type: hld
+    difficulty: Medium
+    topic: web-services
+    summary: Encode/decode, custom aliases, analytics, expiry, billions of links
+    companies: [Amazon, Google, Meta, Twitter, Microsoft, Bitly, Cloudflare, Stripe]
+    tags: [hashing, kv-store, analytics]
+
+  - title: Design Twitter / X
+    type: hld
+    difficulty: Hard
+    topic: social
+    summary: Timeline (fanout-on-write vs read), tweets, follows, search, trends
+    companies: [Twitter/X, Meta, LinkedIn, Pinterest, Reddit, Amazon, Bluesky]
+    tags: [fanout, timeline, caching, search]
+
+  - title: Design Instagram
+    type: hld
+    difficulty: Hard
+    topic: social
+    summary: Photo upload, feed, stories, follows, search, CDN, media pipeline
+    companies: [Meta, Snap, Pinterest, TikTok, ByteDance, Amazon]
+    tags: [media, fanout, cdn, search]
+
+  - title: Design Facebook News Feed
+    type: hld
+    difficulty: Hard
+    topic: social
+    summary: Personalized ranking, feed generation, edge filtering, ad insertion
+    companies: [Meta, LinkedIn, Twitter/X, Reddit, Pinterest, TikTok]
+    tags: [ranking, ml, fanout, caching]
+
+  - title: Design WhatsApp / Messenger
+    type: hld
+    difficulty: Hard
+    topic: messaging
+    summary: 1:1 + group chat, presence, delivery receipts, E2E encryption, offline queue
+    companies: [Meta, Telegram, Signal, Slack, Discord, Apple iMessage]
+    tags: [websockets, encryption, fanout, ordering]
+
+  - title: Design Netflix / Video Streaming
+    type: hld
+    difficulty: Hard
+    topic: media
+    summary: Encoding pipeline, CDN distribution, adaptive bitrate, recommendations, DRM
+    companies: [Netflix, Amazon Prime Video, Disney+, Hulu, Hotstar, YouTube, HBO Max]
+    tags: [cdn, video-pipeline, recommendations, drm]
+
+  - title: Design YouTube
+    type: hld
+    difficulty: Hard
+    topic: media
+    summary: Upload, transcoding, distribution, recommendations, comments, monetization
+    companies: [YouTube, Vimeo, TikTok, Twitch, Dailymotion, JioCinema]
+    tags: [video-pipeline, cdn, recommendations]
+
+  - title: Design Dropbox / Google Drive
+    type: hld
+    difficulty: Hard
+    topic: storage
+    summary: File upload/sync, chunking, dedup, conflict resolution, sharing, versioning
+    companies: [Dropbox, Google, Microsoft OneDrive, Box, Amazon, iCloud]
+    tags: [chunking, dedup, sync, conflict]
+
+  - title: Design Uber / Lyft (HLD)
+    type: hld
+    difficulty: Hard
+    topic: matching
+    summary: Geo-indexed driver search, matching, ETA, pricing, real-time updates
+    companies: [Uber, Lyft, Ola, DoorDash, Instacart, Bolt, Grab]
+    tags: [geo, matching, real-time, surge]
+
+  - title: Design Tinder
+    type: hld
+    difficulty: Medium
+    topic: matching
+    summary: Profiles, swipe matching, recommendations, chat, geo filtering
+    companies: [Tinder, Bumble, Hinge, OkCupid, Match Group]
+    tags: [matching, recommendations, geo]
+
+  - title: Design Yelp / Local Search
+    type: hld
+    difficulty: Medium
+    topic: search
+    summary: Geospatial search, reviews, ranking, photos, recommendations
+    companies: [Yelp, Google Maps, TripAdvisor, Zomato, Foursquare]
+    tags: [geo, search, ranking, reviews]
+
+  - title: Design TikTok / Short Video Feed
+    type: hld
+    difficulty: Hard
+    topic: media
+    summary: Vertical feed, recommendation engine, low-latency video, creator tools
+    companies: [TikTok/ByteDance, Instagram Reels, YouTube Shorts, Snap Spotlight]
+    tags: [recommendations, video, ml, fanout]
+
+  - title: Design Reddit
+    type: hld
+    difficulty: Hard
+    topic: social
+    summary: Subreddits, posts, comments tree, voting, ranking, moderation
+    companies: [Reddit, Discord, Stack Overflow, Hacker News, Lemmy]
+    tags: [voting, ranking, tree, moderation]
+
+  - title: Design Airbnb / Booking.com
+    type: hld
+    difficulty: Hard
+    topic: booking
+    summary: Listings, search, availability calendar, reservations, payments, reviews
+    companies: [Airbnb, Booking.com, Vrbo, MakeMyTrip, OYO, Hotels.com, Expedia]
+    tags: [search, calendar, payments, reviews]
+
+  - title: Design Web Crawler
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: URL frontier, politeness/robots, dedup, distributed fetch, parsing
+    companies: [Google, Bing, Amazon, Common Crawl, DuckDuckGo, Yandex, Cloudflare]
+    tags: [distributed, queue, dedup, politeness]
+
+  - title: Design Search Autocomplete (Distributed)
+    type: hld
+    difficulty: Hard
+    topic: search
+    summary: Trie shards, top-k per prefix, freshness, A/B ranking, multi-region
+    companies: [Google, Amazon, Bing, Yelp, LinkedIn, Pinterest, Twitter]
+    tags: [trie, top-k, ranking]
+
+  - title: Design Notification System (HLD)
+    type: hld
+    difficulty: Hard
+    topic: messaging
+    summary: Multi-channel fanout (push/SMS/email), prioritization, throttling, dedup
+    companies: [Amazon, Twilio, SendGrid, Stripe, Notion, Atlassian, Slack]
+    tags: [fanout, queue, throttling]
+
+  - title: Design Distributed Cache
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Consistent hashing, replication, eviction, invalidation, hot-key mitigation
+    companies: [Amazon, Google, Meta, Cloudflare, Redis Labs, Memcached, Stripe]
+    tags: [consistent-hashing, replication, hot-keys]
+
+  - title: Design Distributed File System (GFS)
+    type: hld
+    difficulty: Hard
+    topic: storage
+    summary: Master + chunk-servers, replication, recovery, large-file streaming reads
+    companies: [Google, Amazon, Microsoft, Cloudflare, Snowflake, Databricks]
+    tags: [storage, replication, master-worker]
+
+  - title: Design Distributed Logger
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Multi-source ingestion, indexing, retention tiering, query, alerting
+    companies: [Splunk, Datadog, Elastic, Amazon CloudWatch, Honeycomb, Sumo Logic]
+    tags: [ingestion, indexing, time-series]
+
+  - title: Design Distributed Rate Limiter
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Per-key quotas across nodes, sliding window, fairness, low coordination
+    companies: [Cloudflare, Stripe, Amazon, Google, Twitter, Discord, GitHub]
+    tags: [distributed, sliding-window, fairness]
+
+  - title: Design API Gateway
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Routing, auth, rate-limiting, request/response transform, observability
+    companies: [AWS, Kong, Stripe, Apigee, Cloudflare, Nginx, Envoy]
+    tags: [routing, auth, observability]
+
+  - title: Design Payment Gateway
+    type: hld
+    difficulty: Hard
+    topic: financial
+    summary: Card/UPI/wallet orchestration, idempotency, retries, reconciliation, fraud
+    companies: [Stripe, Adyen, PayPal, Razorpay, PhonePe, Paytm, Square, Block]
+    tags: [idempotency, retry, fraud, reconciliation]
+
+  - title: Design Ad Server / Display Ads
+    type: hld
+    difficulty: Hard
+    topic: ads
+    summary: Targeting, real-time bidding, frequency capping, attribution, budget pacing
+    companies: [Google, Meta, Amazon, TheTradeDesk, Criteo, Pinterest, Snap]
+    tags: [rtb, targeting, ml, attribution]
+
+  - title: Design Distributed Counter
+    type: hld
+    difficulty: Medium
+    topic: infrastructure
+    summary: High-write throughput counters (likes/views), CRDT or sharded accumulators
+    companies: [Twitter, YouTube, Meta, Instagram, Reddit, Pinterest]
+    tags: [crdt, sharding, aggregation]
+
+  - title: Design Stock Exchange (HLD)
+    type: hld
+    difficulty: Hard
+    topic: financial
+    summary: Order book, matching engine, market data feed, low-latency, regulatory audit
+    companies: [Nasdaq, NYSE, NSE, Goldman Sachs, Two Sigma, Citadel, Jane Street, Coinbase]
+    tags: [matching, low-latency, ordering]
+
+  - title: Design Recommendation System
+    type: hld
+    difficulty: Hard
+    topic: ml
+    summary: Candidate generation, ranking, real-time signals, A/B, cold start
+    companies: [Netflix, YouTube, TikTok, Amazon, Spotify, Pinterest, Meta]
+    tags: [ml, ranking, cold-start]
+
+  - title: Design Code Deployment / CI System
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Build pipeline, artifact storage, rollout strategies (canary/blue-green), rollback
+    companies: [Amazon, Google, Microsoft, GitHub, GitLab, CircleCI, Atlassian, Spinnaker]
+    tags: [pipeline, rollout, observability]
+
+  - title: Design Distributed Job Scheduler
+    type: hld
+    difficulty: Hard
+    topic: infrastructure
+    summary: Cron + ad-hoc jobs, sharded workers, retries, failure isolation
+    companies: [Amazon, Google, Airbnb (Airflow), Netflix, LinkedIn, Uber, Lyft]
+    tags: [scheduler, queue, distributed]
+
+  - title: Design Distributed Pub-Sub (Kafka)
+    type: hld
+    difficulty: Hard
+    topic: messaging
+    summary: Topics, partitions, log replication, consumer groups, exactly-once semantics
+    companies: [Confluent, LinkedIn, Uber, Stripe, Airbnb, Cloudflare, Amazon (MSK)]
+    tags: [log, replication, consumer-groups]
+
+  - title: Design Slack
+    type: hld
+    difficulty: Hard
+    topic: messaging
+    summary: Channels, real-time messaging, search, presence, multi-workspace, integrations
+    companies: [Slack, Discord, Microsoft Teams, Mattermost, Salesforce]
+    tags: [websockets, search, fanout]
+
+  - title: Design Zoom / Video Conferencing
+    type: hld
+    difficulty: Hard
+    topic: media
+    summary: SFU vs MCU, WebRTC, low-latency media routing, recording, scaling rooms
+    companies: [Zoom, Google Meet, Microsoft Teams, Apple FaceTime, Cisco Webex]
+    tags: [webrtc, media, sfu, low-latency]
+
+  - title: Design Google Docs (Collaborative Editor)
+    type: hld
+    difficulty: Hard
+    topic: collaboration
+    summary: OT or CRDT, presence, conflict resolution, history, comments, permissions
+    companies: [Google, Microsoft Office 365, Notion, Figma, Atlassian (Confluence)]
+    tags: [crdt, ot, real-time, history]
+
+  - title: Design Gmail
+    type: hld
+    difficulty: Hard
+    topic: messaging
+    summary: SMTP ingest, threads, search, spam filter, attachments, multi-device sync
+    companies: [Google, Microsoft Outlook, Apple Mail, Yahoo, ProtonMail]
+    tags: [search, indexing, spam, sync]
+
+  - title: Design Pastebin
+    type: hld
+    difficulty: Easy
+    topic: web-services
+    summary: Create/read paste, expiry, syntax highlight, basic analytics
+    companies: [Pastebin, Hastebin, GitHub Gist, Amazon]
+    tags: [kv-store, expiry, cdn]
+
+  - title: Design DoorDash / Delivery (HLD)
+    type: hld
+    difficulty: Hard
+    topic: matching
+    summary: Restaurant onboarding, dispatch optimization, real-time tracking, surge
+    companies: [DoorDash, Uber Eats, Instacart, Swiggy, Zomato, Grubhub, Postmates]
+    tags: [matching, geo, real-time, surge]
+
+  - title: Design BookMyShow / Ticketing (HLD)
+    type: hld
+    difficulty: Hard
+    topic: booking
+    summary: Seat-locking under load, payment, fan-in spikes, cancellation, multi-region
+    companies: [BookMyShow, Ticketmaster, StubHub, SeatGeek, Razorpay]
+    tags: [seat-locking, concurrency, payments]
+
+  - title: Design IRCTC / Train Ticket Booking
+    type: hld
+    difficulty: Hard
+    topic: booking
+    summary: Train schedules, route segments, tatkal/burst load, waitlist, refunds
+    companies: [IRCTC, Indian Railways, MakeMyTrip, ConfirmTkt, Trainman]
+    tags: [bursty-load, waitlist, multi-leg]
+
+  - title: Design Hotel Booking (HLD)
+    type: hld
+    difficulty: Hard
+    topic: booking
+    summary: Availability calendar, dynamic pricing, multi-supplier inventory, cancellation
+    companies: [Booking.com, Airbnb, Expedia, MakeMyTrip, OYO, Marriott]
+    tags: [calendar, pricing, multi-supplier]
+
+  - title: Design Google Maps
+    type: hld
+    difficulty: Hard
+    topic: geo
+    summary: Tile rendering, routing (Dijkstra/contraction hierarchies), traffic, search
+    companies: [Google, Apple Maps, Mapbox, HERE, Uber, OpenStreetMap]
+    tags: [graph, geo, routing, tiles]
+
+  - title: Design Distributed Web Search Engine
+    type: hld
+    difficulty: Hard
+    topic: search
+    summary: Crawl → index → rank pipeline, query serving, freshness, sharding
+    companies: [Google, Bing, DuckDuckGo, Yandex, Amazon, Elastic]
+    tags: [inverted-index, ranking, crawler]

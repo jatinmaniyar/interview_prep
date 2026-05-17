@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import {
@@ -9,6 +9,45 @@ import {
   type RunResult,
 } from "../api";
 
+function useSplit(
+  direction: "horizontal" | "vertical",
+  initial: number,
+  min = 15,
+  max = 85,
+) {
+  const [pct, setPct] = useState(initial);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const startDrag = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const move = (me: MouseEvent) => {
+        const el = containerRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const raw =
+          direction === "horizontal"
+            ? ((me.clientX - r.left) / r.width) * 100
+            : ((me.clientY - r.top) / r.height) * 100;
+        setPct(Math.min(max, Math.max(min, raw)));
+      };
+      const up = () => {
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("mouseup", up);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+      document.body.style.cursor = direction === "horizontal" ? "col-resize" : "row-resize";
+      document.body.style.userSelect = "none";
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+    },
+    [direction, min, max],
+  );
+
+  return { pct, containerRef, startDrag };
+}
+
 const DEFAULT_PYTHON = (method: string | null) =>
   `class Solution:
     def ${method ?? "solve"}(self, *args):
@@ -16,18 +55,8 @@ const DEFAULT_PYTHON = (method: string | null) =>
         pass
 `;
 
-const DEFAULT_CPP = `#include <bits/stdc++.h>
-using namespace std;
-// JSON parsing for input is left to you; use a library or write a tiny parser.
-class Solution {
-public:
-    // implement the required method here
-};
-int main() {
-    // read JSON args from stdin, dispatch to Solution method, print JSON to stdout
-    return 0;
-}
-`;
+const DEFAULT_CPP = (method: string | null) =>
+  `class Solution {\n public:\n  // ${method ?? "solve"}(...) {\n  //   your code here\n  // }\n};\n`;
 
 export default function ProblemDetail() {
   const { id } = useParams();
@@ -38,7 +67,10 @@ export default function ProblemDetail() {
   const [code, setCode] = useState<string>("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
+  const [mode, setMode] = useState<"run" | "submit">("run");
   const [showSolution, setShowSolution] = useState(false);
+  const hSplit = useSplit("horizontal", 50, 20, 80);
+  const vSplit = useSplit("vertical", 65, 20, 85);
 
   useEffect(() => {
     getProblem(pid)
@@ -47,7 +79,7 @@ export default function ProblemDetail() {
         const initial =
           language === "python"
             ? d.boilerplate_python ?? DEFAULT_PYTHON(d.method_signature)
-            : d.boilerplate_cpp ?? DEFAULT_CPP;
+            : d.boilerplate_cpp ?? DEFAULT_CPP(d.method_signature);
         setCode(initial);
       })
       .catch((e) => setErr(String(e)));
@@ -58,7 +90,7 @@ export default function ProblemDetail() {
     setCode(
       language === "python"
         ? data.boilerplate_python ?? DEFAULT_PYTHON(data.method_signature)
-        : data.boilerplate_cpp ?? DEFAULT_CPP
+        : data.boilerplate_cpp ?? DEFAULT_CPP(data.method_signature)
     );
     setResult(null);
   }, [language, data]);
@@ -72,6 +104,7 @@ export default function ProblemDetail() {
   if (!data) return <div className="p-6 text-slate-400">Loading…</div>;
 
   async function onRun() {
+    setMode("run");
     setRunning(true);
     setResult(null);
     try {
@@ -84,6 +117,7 @@ export default function ProblemDetail() {
   }
 
   async function onSubmit() {
+    setMode("submit");
     setRunning(true);
     setResult(null);
     try {
@@ -96,9 +130,12 @@ export default function ProblemDetail() {
   }
 
   return (
-    <div className="h-full grid grid-cols-2">
+    <div ref={hSplit.containerRef} className="h-full flex overflow-hidden">
       {/* Left: problem statement */}
-      <div className="border-r border-slate-800 overflow-auto p-6 prose prose-invert max-w-none">
+      <div
+        style={{ width: `${hSplit.pct}%` }}
+        className="overflow-auto p-6 prose prose-invert max-w-none shrink-0"
+      >
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-xl font-bold m-0">
             {data.id}. {data.title}
@@ -128,6 +165,43 @@ export default function ProblemDetail() {
           />
         )}
 
+        {data.sample_tests.length > 0 && (
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Examples
+            </div>
+            {data.sample_tests.slice(0, 2).map((t, i) => {
+              let inputDisplay: string;
+              let outputDisplay: string;
+              try {
+                inputDisplay = JSON.stringify(JSON.parse(t.input_json), null, 0);
+              } catch {
+                inputDisplay = t.input_json;
+              }
+              try {
+                outputDisplay = JSON.stringify(JSON.parse(t.expected_output_json), null, 0);
+              } catch {
+                outputDisplay = t.expected_output_json;
+              }
+              return (
+                <div key={t.id} className="mb-3 text-sm font-mono">
+                  <div className="text-slate-300 font-semibold mb-1">Example {i + 1}:</div>
+                  <div className="bg-slate-900 rounded p-2 text-xs space-y-1">
+                    <div>
+                      <span className="text-slate-500">Input:&nbsp;</span>
+                      <span className="text-slate-200">{inputDisplay}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Output:&nbsp;</span>
+                      <span className="text-slate-200">{outputDisplay}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="mt-6">
           <button
             onClick={() => setShowSolution((s) => !s)}
@@ -143,9 +217,15 @@ export default function ProblemDetail() {
         </div>
       </div>
 
+      {/* Horizontal drag handle */}
+      <div
+        onMouseDown={hSplit.startDrag}
+        className="w-1 shrink-0 bg-slate-800 hover:bg-blue-500 active:bg-blue-400 cursor-col-resize transition-colors"
+      />
+
       {/* Right: editor + results */}
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-800">
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-800 shrink-0">
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as "python" | "cpp")}
@@ -170,17 +250,30 @@ export default function ProblemDetail() {
             Submit
           </button>
         </div>
-        <div className="flex-1 min-h-0">
-          <Editor
-            height="100%"
-            language={language === "cpp" ? "cpp" : "python"}
-            theme="vs-dark"
-            value={code}
-            onChange={(v) => setCode(v ?? "")}
-            options={{ minimap: { enabled: false }, fontSize: 13 }}
+
+        {/* Editor + vertical drag handle + results */}
+        <div ref={vSplit.containerRef} className="flex-1 flex flex-col min-h-0">
+          <div style={{ height: `${vSplit.pct}%` }} className="min-h-0">
+            <Editor
+              height="100%"
+              language={language === "cpp" ? "cpp" : "python"}
+              theme="vs-dark"
+              value={code}
+              onChange={(v) => setCode(v ?? "")}
+              options={{ minimap: { enabled: false }, fontSize: 13 }}
+            />
+          </div>
+
+          {/* Vertical drag handle */}
+          <div
+            onMouseDown={vSplit.startDrag}
+            className="h-1 shrink-0 bg-slate-800 hover:bg-blue-500 active:bg-blue-400 cursor-row-resize transition-colors"
           />
+
+          <div className="flex-1 overflow-auto min-h-0">
+            <ResultsPanel result={result} running={running} mode={mode} />
+          </div>
         </div>
-        <ResultsPanel result={result} running={running} />
       </div>
     </div>
   );
@@ -194,29 +287,37 @@ function difficultyClasses(d: string) {
   return `${base} text-slate-300 border-slate-600`;
 }
 
-function ResultsPanel({ result, running }: { result: RunResult | null; running: boolean }) {
+function ResultsPanel({
+  result,
+  running,
+  mode,
+}: {
+  result: RunResult | null;
+  running: boolean;
+  mode: "run" | "submit";
+}) {
   if (running)
     return (
-      <div className="border-t border-slate-800 p-4 text-slate-400 text-sm h-56 overflow-auto">
+      <div className="border-t border-slate-800 p-4 text-slate-400 text-sm h-full overflow-auto">
         Running…
       </div>
     );
   if (!result)
     return (
-      <div className="border-t border-slate-800 p-4 text-slate-500 text-sm h-56 overflow-auto">
+      <div className="border-t border-slate-800 p-4 text-slate-500 text-sm h-full overflow-auto">
         Press Run to test against samples, or Submit to run all validated tests.
       </div>
     );
   if (result.compile_error) {
     return (
-      <div className="border-t border-slate-800 p-4 h-56 overflow-auto">
+      <div className="border-t border-slate-800 p-4 h-full overflow-auto">
         <div className="text-red-400 text-sm font-semibold">Compile error</div>
         <pre className="text-xs whitespace-pre-wrap">{result.compile_error}</pre>
       </div>
     );
   }
   return (
-    <div className="border-t border-slate-800 h-56 overflow-auto">
+    <div className="border-t border-slate-800 h-full overflow-auto">
       <div className="px-4 py-2 text-sm border-b border-slate-800 flex gap-4">
         <span className={result.passed === result.total ? "text-green-400" : "text-red-400"}>
           {result.passed} / {result.total} passed
@@ -239,7 +340,7 @@ function ResultsPanel({ result, running }: { result: RunResult | null; running: 
               </span>
               <span>{r.runtime_ms}ms</span>
             </div>
-            {!r.passed && (
+            {(mode === "run" || !r.passed) && (
               <div className="mt-1 grid grid-cols-3 gap-2 font-mono text-[11px]">
                 <Cell label="input" value={r.input} />
                 <Cell label="expected" value={r.expected} />

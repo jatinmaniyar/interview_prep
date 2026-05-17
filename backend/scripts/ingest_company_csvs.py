@@ -35,11 +35,12 @@ PERIOD_MAP = {
     "six months": "6m",
     "more than six months": "1y",
     "all time": "alltime",
+    "all": "alltime",
 }
 
 
 def parse_period(filename: str) -> str | None:
-    name = filename.lower().rstrip(".csv")
+    name = Path(filename).stem.lower()
     name = re.sub(r"^\d+\.\s*", "", name)
     return PERIOD_MAP.get(name.strip())
 

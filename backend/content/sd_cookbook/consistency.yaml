@@ -1,0 +1,96 @@
+section: consistency
+title: Consistency, CAP & NFR Checklist
+display: sections
+sources:
+  - Designing Data-Intensive Applications (chs. 5, 7, 9)
+  - MIT 6.824 Distributed Systems lecture notes
+  - CMU 15-445 Database Systems lecture notes
+  - Martin Fowler — CAP twelve years later
+  - Daniel Abadi — PACELC
+description: >
+  Use the right vocabulary. Saying "we'll go with eventual consistency" is
+  fine — saying "we'll relax to causal consistency for cross-shard ordering"
+  is better.
+
+groups:
+  - heading: CAP Theorem
+    body: >
+      In the presence of a network partition (P), a distributed system
+      must choose between consistency (C) and availability (A). The "pick 2"
+      framing is misleading — partitions happen, so the real choice is C-vs-A
+      DURING a partition.
+    items:
+      - heading: CP systems
+        body: "Sacrifice availability to keep data consistent. Examples — HBase, BigTable, MongoDB (with majority writes), ZooKeeper, etcd."
+      - heading: AP systems
+        body: "Stay available; resolve conflicts later. Examples — Cassandra, DynamoDB (default), Riak, CouchDB."
+      - heading: "\"CA\" is a myth"
+        body: "If your system doesn't partition (single node), CAP doesn't apply. Otherwise you're CP or AP."
+
+  - heading: PACELC (the more honest framing)
+    body: >
+      If Partition: choose A or C.  Else (normal operation): choose L (latency)
+      or C (consistency). PACELC describes the latency-vs-consistency tradeoff
+      that exists *even without* a partition.
+    items:
+      - heading: PA/EL
+        body: "Cassandra, DynamoDB — always favor low latency."
+      - heading: PA/EC
+        body: "MongoDB — available under partition but prefers consistency in normal ops."
+      - heading: PC/EC
+        body: "VoltDB, HBase, BigTable, Spanner — consistency always."
+
+  - heading: Consistency Models (strongest → weakest)
+    items:
+      - heading: Linearizability
+        body: "Reads see the latest committed write; total order. Most expensive; needed for locks, counters, leader registries."
+      - heading: Sequential
+        body: "Operations appear in some serial order, same across all observers — but not necessarily real-time."
+      - heading: Causal
+        body: "Operations that causally depend on each other are seen in order; concurrent ops can be re-ordered. Good fit for collaborative apps."
+      - heading: Read-Your-Writes
+        body: "A client always sees its own writes. Easy to violate with async replication."
+      - heading: Monotonic Reads
+        body: "Once a client sees value v, it never sees an earlier value. Sticky-session pattern."
+      - heading: Eventual
+        body: "All replicas converge eventually, no other ordering guarantee. Cheapest."
+
+  - heading: Non-Functional Requirements Checklist
+    body: >
+      Cover these in step 1 of every interview. Pick the ones the system
+      actually needs — over-engineering 5 nines for an internal tool is a
+      red flag.
+    items:
+      - heading: Availability
+        body: "Uptime SLA (3 / 4 / 5 nines). Failover plan. Multi-region story."
+      - heading: Latency
+        body: "p50/p95/p99 targets. End-to-end vs per-service. User-perceived budget."
+      - heading: Throughput
+        body: "Peak QPS / events-per-sec. Headroom multiplier."
+      - heading: Durability
+        body: "Acceptable data-loss window (RPO). Replication factor. Backup cadence."
+      - heading: Consistency
+        body: "Pick a model per data type. Don't say 'strong' if you mean 'eventually within 100ms'."
+      - heading: Scalability
+        body: "Vertical limits hit when? Horizontal scale dimension (which key)?"
+      - heading: Fault Tolerance
+        body: "Failure of a node / AZ / region. Recovery time (RTO). Degradation modes."
+      - heading: Observability
+        body: "Metrics, logs, traces, dashboards, alerts. Synthetic probes. SLO budgets."
+      - heading: Security
+        body: "AuthN/AuthZ, encryption in transit & at rest, secrets handling, audit, PII boundaries."
+      - heading: Cost
+        body: "$/month ballpark. Storage tiers. Cache hit ratio. CDN savings."
+      - heading: Compliance / Privacy
+        body: "GDPR right-to-erase, data residency, retention policies."
+
+  - heading: When to use which consensus protocol
+    items:
+      - heading: Raft
+        body: "Modern default. Easier to implement and reason about than Paxos. Used by etcd, Consul, CockroachDB, TiKV."
+      - heading: Paxos
+        body: "Original. Complex, lots of variants (Multi-Paxos, EPaxos). Google Chubby, Spanner internals."
+      - heading: ZAB
+        body: "ZooKeeper's protocol. Practical Paxos variant for primary-backup."
+      - heading: Gossip
+        body: "Anti-entropy; eventual convergence. Cassandra, Consul SWIM, blockchain peers."

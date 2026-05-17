@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { listProblems, type ProblemSummary } from "../api";
+import {
+  listCompanies,
+  listProblems,
+  type CompanyOption,
+  type ProblemSummary,
+} from "../api";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const STATUSES = ["all", "unsolved", "attempted", "solved"];
@@ -10,11 +15,16 @@ export default function Problems() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [company, setCompany] = useState<string>("");
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [difficulty, setDifficulty] = useState<string[]>([]);
   const [status, setStatus] = useState("all");
   const [period, setPeriod] = useState("");
   const [minFreq, setMinFreq] = useState("");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    listCompanies().then(setCompanies).catch(() => setCompanies([]));
+  }, []);
 
   const params = useMemo(() => {
     const p = new URLSearchParams();
@@ -53,12 +63,18 @@ export default function Problems() {
     <div className="h-full flex flex-col p-6 gap-4 overflow-auto">
       <div className="flex flex-wrap items-end gap-4">
         <Field label="Company">
-          <input
+          <select
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="e.g. Amazon"
-            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-40"
-          />
+            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-48"
+          >
+            <option value="">any</option>
+            {companies.map((c) => (
+              <option key={c.company} value={c.company}>
+                {c.company} ({c.count})
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="Difficulty">
           <div className="flex gap-2">

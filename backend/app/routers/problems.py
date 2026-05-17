@@ -56,6 +56,21 @@ def list_problems(
     return out
 
 
+@router.get("/companies")
+def list_companies(db: Session = Depends(get_db)):
+    """Distinct companies that have at least one tagged DSA problem, with counts.
+    Used by the Problems page company dropdown."""
+    rows = db.execute(
+        select(
+            CompanyTag.company,
+            func.count(func.distinct(CompanyTag.problem_id)).label("count"),
+        )
+        .group_by(CompanyTag.company)
+        .order_by(func.count(func.distinct(CompanyTag.problem_id)).desc())
+    ).all()
+    return [{"company": c, "count": n} for c, n in rows]
+
+
 @router.get("/problems/{problem_id}")
 def get_problem(problem_id: int, db: Session = Depends(get_db)):
     p = db.get(Problem, problem_id)

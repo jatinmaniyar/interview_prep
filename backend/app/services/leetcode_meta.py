@@ -26,7 +26,7 @@ query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $fi
       title
       titleSlug
       difficulty
-      paidOnly
+      isPaidOnly
       acRate
       topicTags { name slug }
     }
@@ -49,6 +49,7 @@ def fetch_all(rate_limit_s: float = 1.1, page_size: int = 100) -> Iterator[dict]
                 GRAPHQL_URL,
                 headers=headers,
                 json={
+                    "operationName": "problemsetQuestionList",
                     "query": _QUERY,
                     "variables": {
                         "categorySlug": "",
@@ -70,7 +71,7 @@ def fetch_all(rate_limit_s: float = 1.1, page_size: int = 100) -> Iterator[dict]
                     "title": q["title"],
                     "slug": q["titleSlug"],
                     "difficulty": q["difficulty"],
-                    "is_premium": bool(q["paidOnly"]),
+                    "is_premium": bool(q["isPaidOnly"]),
                     "acceptance_pct": q.get("acRate"),
                     "topics": [t["slug"] for t in q.get("topicTags") or []],
                 }

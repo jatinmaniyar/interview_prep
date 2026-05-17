@@ -1,0 +1,279 @@
+section: building_blocks
+title: HLD Building Blocks
+display: cards
+sources:
+  - Designing Data-Intensive Applications (Kleppmann)
+  - donnemartin/system-design-primer
+  - High Scalability (highscalability.com)
+  - ByteByteGo (System Design Interview vol. 1 & 2)
+  - AWS Architecture Center
+  - GCP Architecture Center
+  - Martin Fowler — Patterns of Enterprise Application Architecture
+description: >
+  The components that show up in 90% of HLD answers. For each, know the
+  one-line definition + the trade-off it forces + when to reach for it.
+  In the room, don't just name the box — say what failure mode it addresses
+  and what cost it adds (latency, consistency, ops). That's the signal
+  interviewers look for.
+
+groups:
+  - heading: Traffic & Edge
+    entries:
+      - heading: Load Balancer (L4 / L7)
+        intent: Distribute requests across replicas; remove failed nodes.
+        when: Anywhere you have >1 service instance.
+        flavors: "L4 (TCP, fast, opaque), L7 (HTTP, header-aware, path/host routing, sticky sessions)."
+        algos: "Round-robin, least-connections, least-latency, IP-hash, weighted, P2C (power of two choices)."
+        examples: "AWS ALB/NLB, GCP LB, Envoy, HAProxy, Nginx, F5."
+        watch: Health-check tuning (too aggressive = flapping); session affinity defeats horizontal scale; single LB = SPOF (use Anycast / DNS round-robin).
+
+      - heading: CDN
+        intent: Cache static + cacheable dynamic content close to the user.
+        when: Read-heavy global traffic; large assets; spike absorption.
+        flavors: "Pull (origin-fetch on miss) vs push (pre-populate); edge compute (Workers/Lambda@Edge) for personalization."
+        examples: "Cloudflare, Akamai, Fastly, CloudFront."
+        how: "Cache-Control, ETag, stale-while-revalidate; signed URLs for private assets."
+        watch: Cache invalidation is hard (TTL + purge API); cookies + query strings can fragment cache keys.
+
+      - heading: API Gateway
+        intent: Single ingress doing routing, auth, rate-limit, transform, logging.
+        when: Microservices; mobile clients hitting many backends.
+        examples: "Kong, Apigee, AWS API Gateway, Envoy, Tyk."
+        watch: Becomes a bottleneck and deployment-coordination point; keep logic thin — business rules belong in services, not gateway plugins.
+
+      - heading: Reverse Proxy
+        intent: Front terminator for TLS, compression, caching, routing.
+        when: Always — at minimum for TLS termination.
+        examples: "Nginx, Envoy, HAProxy, Caddy, Traefik."
+        watch: HTTP/2 connection multiplexing changes balancing math; misconfigured timeouts amplify upstream failures.
+
+      - heading: DNS
+        intent: Map names → IPs; first hop of every request.
+        when: Multi-region routing, failover, traffic shaping.
+        flavors: "GeoDNS, latency-based, weighted, failover, Anycast."
+        examples: "Route53, Cloudflare DNS, NS1."
+        watch: TTLs control failover speed but raise resolver load; client DNS caching can ignore short TTLs.
+
+  - heading: Caching
+    entries:
+      - heading: In-process cache
+        intent: Cache colocated with the service (L1).
+        when: Hot read-only data, microsecond latency wins.
+        examples: "Guava Cache, Caffeine, LRU map, Ristretto (Go)."
+        watch: Coherence across replicas; size bounded by JVM heap; warm-up cost on restart.
+
+      - heading: Distributed cache
+        intent: Shared cache cluster (L2).
+        when: Cross-replica read amplification reduction.
+        examples: "Redis, Memcached, Hazelcast, Aerospike."
+        watch: Network hop (~1ms); invalidation across nodes; hot keys (mitigate with client-side caching of hottest); stampede on TTL expiry (use jittered TTL or lock-on-miss).
+
+      - heading: Cache patterns
+        intent: How the cache is populated and kept fresh.
+        flavors: "Cache-aside (lazy), read-through, write-through, write-back/behind, refresh-ahead."
+        when: "Cache-aside = default (read-heavy, tolerate stale). Write-through = strong consistency need. Write-back = write-heavy with relaxed durability. Refresh-ahead = predictable hot keys."
+        watch: Thundering herd on cold cache; "negative caching" misses can amplify load — cache the miss too.
+
+      - heading: HTTP / Browser cache
+        intent: Per-client caching via Cache-Control headers.
+        when: Static assets, idempotent GETs.
+        how: "Cache-Control: max-age, immutable, s-maxage; ETag/If-None-Match; Vary header for content negotiation."
+        watch: Cache-busting via hashed filenames is more reliable than purging CDNs.
+
+  - heading: Storage
+    entries:
+      - heading: SQL / RDBMS
+        intent: Strong consistency, joins, transactions, schemas.
+        when: Transactional core, financial/ordering data, complex queries.
+        examples: "PostgreSQL, MySQL, Aurora, Spanner, CockroachDB."
+        watch: Vertical scale ceiling; schema migrations on huge tables; long transactions hold locks; OLAP queries on OLTP DB ruin both.
+
+      - heading: NoSQL — Key-Value
+        intent: Fast O(1) get/put on a key.
+        when: Sessions, profile cache, feature flags, leaderboards.
+        examples: "DynamoDB, Redis, Riak, etcd."
+        watch: No joins, secondary indexes are bolt-ons; hot partitions kill throughput.
+
+      - heading: NoSQL — Document
+        intent: Schemaless JSON-like records; nested fields.
+        when: Variable schemas, content management, catalogs.
+        examples: "MongoDB, Couchbase, DocumentDB, Firestore."
+        watch: Schemaless ≠ no schema — pushed to app code; deep nesting hurts index/update perf.
+
+      - heading: NoSQL — Wide-column
+        intent: Massive write throughput, time-series, denormalized rows.
+        when: Logs, metrics, IoT, feeds.
+        examples: "Cassandra, ScyllaDB, HBase, BigTable."
+        watch: Query patterns must be designed before schema (partition + clustering keys); no ad-hoc joins.
+
+      - heading: NoSQL — Graph
+        intent: Native node/edge storage; multi-hop queries.
+        when: Social graph, knowledge graph, fraud detection, recommendations.
+        examples: "Neo4j, JanusGraph, Amazon Neptune, TigerGraph."
+        watch: Supernodes (Justin-Bieber problem); doesn't scale write-throughput like KV stores.
+
+      - heading: Search index
+        intent: Full-text + faceted search, scoring.
+        when: Search-as-you-type, log search, complex filters.
+        examples: "Elasticsearch, OpenSearch, Solr, Meilisearch, Typesense."
+        how: "Inverted index + analyzers + relevance scoring (TF-IDF / BM25)."
+        watch: Not a primary store (eventually consistent); reindexing on schema change is expensive.
+
+      - heading: Object store / blob store
+        intent: Cheap, durable storage for large binary objects.
+        when: Images, videos, backups, logs, data-lake tier.
+        examples: "S3, GCS, Azure Blob, MinIO, Backblaze B2."
+        flavors: "Standard / IA / Glacier tiers; signed URLs for direct client upload/download."
+        watch: Per-request cost; eventual consistency historically (S3 is now strong); listing huge buckets is slow.
+
+      - heading: Time-series DB
+        intent: Optimized for high-cardinality timestamped writes + range queries.
+        when: Metrics, monitoring, sensor data.
+        examples: "InfluxDB, TimescaleDB, Prometheus, VictoriaMetrics."
+        watch: Cardinality explosion (too many label combos) is the #1 outage cause.
+
+  - heading: Sharding & Replication
+    entries:
+      - heading: Replication
+        intent: Multiple copies for read scale + failover.
+        when: Always for production-grade DBs.
+        flavors: "Sync (strong, slow), async (faster but lag), semi-sync; single-leader, multi-leader, leaderless (Dynamo-style)."
+        watch: "Replica lag — read-your-writes consistency breaks (route reads to leader for the session). Failover can lose async-unreplicated writes."
+
+      - heading: Sharding / Partitioning
+        intent: Split data across nodes by a key.
+        when: Single node can't hold or serve the data.
+        flavors: "Range (good for scans, hot-spot risk), hash (uniform, bad for ranges), directory/lookup (flexible, lookup overhead), composite."
+        watch: "Hot shards (Bieber); resharding pain (use consistent hashing or extra logical shards up-front); cross-shard joins and transactions are slow/limited."
+
+      - heading: Consistent Hashing
+        intent: Stable partitioning under node add/remove.
+        when: Cache clusters, distributed KV, request routing.
+        how: Ring of hashed nodes; key maps to next node clockwise; virtual nodes (vnodes) smooth distribution.
+        examples: "Dynamo, Cassandra, Memcached client-side, Envoy ring-hash LB."
+        watch: Hot keys still happen — mitigate with vnodes, bounded-load variants, or client-side hot-key replication.
+
+      - heading: Leader Election
+        intent: One coordinator across replicas.
+        when: Master-based replication, single-writer designs.
+        examples: "Raft, Paxos, ZAB, ZooKeeper, etcd, Consul."
+        watch: Split-brain under network partition (need quorum); election storms with bad timeouts; bootstrapping the first leader.
+
+      - heading: Quorum (R + W > N)
+        intent: Tunable consistency in leaderless systems.
+        when: Dynamo-style stores; choosing per-call consistency.
+        how: "N = replicas, W = write acks, R = read acks. W=N → strong durability; R=1, W=N → fast reads, slow writes."
+        examples: "Cassandra (ONE/QUORUM/ALL), Dynamo."
+        watch: Sloppy quorum + hinted handoff trades strict guarantees for availability — know your config.
+
+  - heading: Async & Messaging
+    entries:
+      - heading: Message Queue
+        intent: Decouple producer/consumer; absorb spikes.
+        when: Background jobs, retries, fan-out, smoothing bursts.
+        examples: "SQS, RabbitMQ, ActiveMQ, Azure Service Bus."
+        flavors: "Standard (at-least-once) vs FIFO (ordered, exactly-once-ish); DLQ for poison messages."
+        watch: At-least-once delivery → consumers must be idempotent; long-poll vs short-poll cost; visibility timeouts vs processing time.
+
+      - heading: Stream / Log
+        intent: Append-only durable log with replay + consumer groups.
+        when: Event sourcing, real-time analytics, audit, pipelines, CDC.
+        examples: "Kafka, Kinesis, Pulsar, Redpanda."
+        how: "Topics → partitions; offsets per consumer group; retention by time/size; compacted topics for latest-value."
+        watch: Partition count caps parallelism; rebalances pause consumers; ordering only within a partition.
+
+      - heading: Pub-Sub
+        intent: Topic-based fan-out to subscribers.
+        when: Notifications, cache invalidation, multi-consumer events.
+        examples: "Kafka, Redis Pub/Sub, NATS, Google Pub/Sub, SNS."
+        watch: Redis Pub/Sub is fire-and-forget (no replay); pick durable pub-sub for at-least-once needs.
+
+      - heading: Task / Job Scheduler
+        intent: Run work at a time or interval.
+        when: Cron jobs, periodic aggregation, delayed sends.
+        examples: "Quartz, Airflow, Temporal, Sidekiq, Celery, AWS EventBridge Scheduler."
+        watch: "Exactly-once schedule is hard across replicas (use leader-elected scheduler or DB-locked dispatch); clock skew matters."
+
+  - heading: Reliability & Safety
+    entries:
+      - heading: Rate Limiter
+        intent: Cap requests per key per window.
+        when: Public APIs, anti-abuse, fair-use enforcement.
+        algos: "Token bucket (allows bursts), leaky bucket (smooths), fixed window (cheap, edge spikes), sliding window log (accurate, costly), sliding window counter (cheap + decent)."
+        how: Centralize in Redis (atomic Lua) or at the gateway/sidecar; per-user + per-IP + per-route layers.
+        watch: Distributed counters need atomicity; lying clients (forge IP) — combine with auth identity.
+
+      - heading: Circuit Breaker
+        intent: Stop calling failing downstream until it recovers.
+        when: Any synchronous remote dependency.
+        flavors: "Closed → Open → Half-open states; thresholds on error rate, latency, or both."
+        examples: "Hystrix (legacy), Resilience4j, Polly, Envoy outlier detection, Istio."
+        watch: Pair with fallback (cached/default response); don't break on the first slow call — use windowed error rates.
+
+      - heading: Bulkhead
+        intent: Isolate resource pools so one slow dep doesn't sink the rest.
+        when: Multi-tenant or multi-dependency services.
+        how: Per-dependency thread pools / semaphore limits; per-tenant connection pools.
+        watch: Sizing — too small starves legitimate traffic; bulkheads are about blast-radius, not throughput.
+
+      - heading: Retry & Backoff
+        intent: Re-attempt transient failures without amplifying load.
+        when: Network calls, async jobs, idempotent operations.
+        how: Exponential backoff + jitter; cap retry count; budget retries (Google SRE) to avoid retry storms.
+        watch: Retrying non-idempotent writes causes duplicates; retry storms can DDoS your own backend.
+
+      - heading: Bloom Filter
+        intent: O(1) probabilistic membership test; false positives but no false negatives.
+        when: Cache miss avoidance, dedup gate, "don't bother checking" guards (Bigtable/Cassandra SSTable lookup).
+        watch: Fill rate vs false-positive rate is fixed at construction; can't delete (use Counting Bloom or Cuckoo filter).
+
+      - heading: Idempotency
+        intent: Same request applied twice has the effect of once.
+        when: Payment, mutation APIs, retry-prone operations.
+        how: Client-supplied idempotency key + server-side dedup table with TTL; or natural keys (order_id).
+        watch: Idempotency window must outlast worst-case retry latency; partial-success cases (charged-but-no-response) need reconciliation.
+
+      - heading: Health Check & Heartbeat
+        intent: Detect unhealthy nodes for removal / restart.
+        when: Behind any LB or orchestrator.
+        flavors: "Liveness (am I alive?), readiness (can I take traffic?), startup probe."
+        watch: Liveness too strict → restart loops; readiness too loose → traffic to broken nodes. Deep health checks (DB ping) cascade failures.
+
+  - heading: Observability
+    entries:
+      - heading: Metrics
+        intent: Numeric time-series for SLIs (latency, error rate, saturation, traffic).
+        when: Always — first thing to add.
+        examples: "Prometheus, Datadog, CloudWatch, OpenTelemetry metrics."
+        watch: Cardinality explosion (per-user labels); pre-aggregate where possible.
+
+      - heading: Logs
+        intent: Structured event records for debugging.
+        when: Errors, audits, request traces.
+        examples: "ELK/OpenSearch, Loki, Datadog Logs, Splunk."
+        watch: Cost scales with volume — sample aggressively, ship structured (JSON), include trace IDs.
+
+      - heading: Distributed Tracing
+        intent: End-to-end request flow across services with timing per span.
+        when: Microservices with cross-service latency questions.
+        examples: "Jaeger, Zipkin, Tempo, OpenTelemetry traces, Honeycomb."
+        watch: Sampling rate vs visibility tradeoff; propagating trace context across async boundaries is the hard part.
+
+  - heading: Security & Identity
+    entries:
+      - heading: AuthN — Authentication
+        intent: Prove who you are.
+        flavors: "Password + 2FA, OAuth2 (delegation), OIDC (identity on top of OAuth), SAML (enterprise SSO), mTLS (service-to-service)."
+        examples: "Auth0, Okta, Cognito, Keycloak."
+        watch: Session vs token tradeoff — JWT can't be revoked without infra, sessions need server state.
+
+      - heading: AuthZ — Authorization
+        intent: Decide what you're allowed to do.
+        flavors: "RBAC (role-based), ABAC (attribute-based), ReBAC (Google Zanzibar-style, relationship-based)."
+        examples: "Casbin, OPA, AWS IAM, SpiceDB."
+        watch: AuthZ at API gateway vs in-service — gateway is convenient but services should still verify.
+
+      - heading: Secrets Management
+        intent: Store + rotate credentials/keys safely.
+        examples: "HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager, Doppler."
+        watch: Secrets in env vars leak via process dumps; rotation requires app reload story.

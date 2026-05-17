@@ -1,0 +1,74 @@
+# Companies whose public boards we'll poll on `python -m scripts.ingest_jobs`.
+# Format: { source, external_org, company_name? }
+# external_org is the board token, e.g. stripe.com/jobs -> board "stripe".
+# No API keys required for any of these — all public JSON.
+#
+# Curated for the SDE-2/Senior backend persona: product companies, AI labs,
+# dev-tooling, infra-native, and fintech with strong engineering culture.
+#
+# To add: drop a line here, rerun `python -m scripts.ingest_jobs --seed`.
+# To disable: set enabled: false, or run /api/sources DELETE.
+
+sources:
+  # ---- Greenhouse: product companies + unicorns + AI labs ----
+  - { source: greenhouse, external_org: stripe,        company_name: Stripe }
+  - { source: greenhouse, external_org: airbnb,        company_name: Airbnb }
+  - { source: greenhouse, external_org: instacart,     company_name: Instacart }
+  - { source: greenhouse, external_org: figma,         company_name: Figma }
+  - { source: greenhouse, external_org: anthropic,     company_name: Anthropic }
+  - { source: greenhouse, external_org: openai,        company_name: OpenAI }
+  - { source: greenhouse, external_org: databricks,    company_name: Databricks }
+  - { source: greenhouse, external_org: brex,          company_name: Brex }
+  - { source: greenhouse, external_org: ramp,          company_name: Ramp }
+  - { source: greenhouse, external_org: scaleai,       company_name: Scale AI }
+  - { source: greenhouse, external_org: discord,       company_name: Discord }
+  - { source: greenhouse, external_org: dropbox,       company_name: Dropbox }
+  - { source: greenhouse, external_org: pinterest,     company_name: Pinterest }
+  - { source: greenhouse, external_org: reddit,        company_name: Reddit }
+  - { source: greenhouse, external_org: robinhood,     company_name: Robinhood }
+  - { source: greenhouse, external_org: gitlab,        company_name: GitLab }
+  # Additions: infra/dev-tools/AI strong on Greenhouse
+  - { source: greenhouse, external_org: cloudflare,    company_name: Cloudflare }
+  - { source: greenhouse, external_org: snowflake,     company_name: Snowflake }
+  - { source: greenhouse, external_org: datadog,       company_name: Datadog }
+  - { source: greenhouse, external_org: mongodb,       company_name: MongoDB }
+  - { source: greenhouse, external_org: confluent,     company_name: Confluent }
+  - { source: greenhouse, external_org: hashicorp,     company_name: HashiCorp }
+  - { source: greenhouse, external_org: elastic,       company_name: Elastic }
+  - { source: greenhouse, external_org: sentry,        company_name: Sentry }
+  - { source: greenhouse, external_org: temporal,      company_name: Temporal }
+  - { source: greenhouse, external_org: render,        company_name: Render }
+  - { source: greenhouse, external_org: planetscale,   company_name: PlanetScale }
+  - { source: greenhouse, external_org: neon,          company_name: Neon }
+  - { source: greenhouse, external_org: supabase,      company_name: Supabase }
+  - { source: greenhouse, external_org: cohere,        company_name: Cohere }
+  - { source: greenhouse, external_org: huggingface,   company_name: Hugging Face }
+  - { source: greenhouse, external_org: characterai,   company_name: Character.AI }
+  - { source: greenhouse, external_org: mercury,       company_name: Mercury }
+  - { source: greenhouse, external_org: deel,          company_name: Deel }
+  - { source: greenhouse, external_org: rippling,      company_name: Rippling }
+  - { source: greenhouse, external_org: wise,          company_name: Wise }
+
+  # ---- Lever ----
+  - { source: lever, external_org: netflix,            company_name: Netflix }
+  - { source: lever, external_org: spotify,            company_name: Spotify }
+  - { source: lever, external_org: plaid,              company_name: Plaid }
+  # Lever-hosted dev-tools / infra
+  - { source: lever, external_org: redpanda,           company_name: Redpanda }
+  - { source: lever, external_org: tigerbeetle,        company_name: TigerBeetle }
+
+  # ---- Ashby: dev-tools and AI startups ----
+  - { source: ashby, external_org: vercel,             company_name: Vercel }
+  - { source: ashby, external_org: linear,             company_name: Linear }
+  - { source: ashby, external_org: posthog,            company_name: PostHog }
+  - { source: ashby, external_org: perplexity,         company_name: Perplexity }
+  - { source: ashby, external_org: replicate,          company_name: Replicate }
+  - { source: ashby, external_org: anysphere,          company_name: Cursor }
+  - { source: ashby, external_org: elevenlabs,         company_name: ElevenLabs }
+  - { source: ashby, external_org: warp,               company_name: Warp }
+  - { source: ashby, external_org: raycast,            company_name: Raycast }
+  - { source: ashby, external_org: arc,                company_name: The Browser Company }
+  - { source: ashby, external_org: turso,              company_name: Turso }
+
+  # Dead boards from the previous run (greenhouse 404 / lever 404):
+  # doordash, lyft, figma (lever), notion (lever) — removed.

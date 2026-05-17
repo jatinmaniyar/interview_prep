@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
+
+import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -42,15 +44,19 @@ def upsert(db, scraped) -> None:
     p.description_md = scraped.description_md
     p.examples_json = scraped.to_dict()["examples_json"]
     p.constraints_md = scraped.constraints_md
-    p.scraped_at = datetime.utcnow()
+    p.scraped_at = datetime.now(timezone.utc)
 
-    # method_signature: extract from python solution if we can
+    # method_signature + boilerplate: extract from python solution if we can
     py = scraped.solutions.get("python", "")
     if py:
         import re
-        m = re.search(r"def\s+(\w+)\s*\(self", py)
+        m = re.search(r"def\s+(?!__\w+__)(\w+)\s*\(self", py)
         if m:
             p.method_signature = m.group(1)
+        sig_m = re.search(r"(def\s+\w+\s*\(self[^)]*\)(?:\s*->[^:{\n]+)?)\s*:", py)
+        if sig_m and not p.boilerplate_python:
+            sig = sig_m.group(1).rstrip()
+            p.boilerplate_python = f"class Solution:\n    {sig}:\n        # your code here\n        pass\n"
 
     for lang, code in scraped.solutions.items():
         stmt = sqlite_insert(Solution).values(
@@ -108,6 +114,12 @@ def main() -> None:
                     f"  [{i}/{len(ids)}] #{pid} {scraped.title}: "
                     f"desc={len(scraped.description_md)}c, langs={list(scraped.solutions)}"
                 )
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    print(f"  [{i}/{len(ids)}] #{pid}: not on algo.monster (skipped)")
+                else:
+                    print(f"  [{i}/{len(ids)}] #{pid}: HTTP {e.response.status_code} (skipped)")
+                db.rollback()
             except Exception as e:
                 print(f"  [{i}/{len(ids)}] #{pid}: ERROR {e}")
                 db.rollback()

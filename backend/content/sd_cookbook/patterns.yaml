@@ -1,0 +1,224 @@
+section: patterns
+title: LLD Design Patterns
+display: cards
+sources:
+  - Refactoring.Guru
+  - Gang of Four (concepts)
+  - Oracle Java Tutorials
+  - iluwatar/java-design-patterns
+  - Baeldung
+  - Head First Design Patterns
+description: >
+  GoF + commonly-cited extras. For LLD rounds, name the pattern, state its
+  intent in one line, name when you'd use it, and point to a classic problem
+  where it appears. Don't recite all 23 — pick the 2-3 that fit the problem.
+  Most rooms reward "I'd use Strategy here because share-split varies" far
+  more than enumerating every pattern you know.
+
+groups:
+  - heading: Creational
+    entries:
+      - heading: Singleton
+        intent: One instance, globally accessible.
+        when: Shared registry / config / connection pool with single source of truth.
+        flavors: "Eager, lazy (double-checked locking), enum-based (JVM-safe), Bill Pugh holder idiom."
+        example: Parking-lot manager, logger, DB connection pool.
+        watch: Hard to test; hides dependencies; thread-safety bugs in lazy init; serialization breaks uniqueness. Prefer DI when possible.
+
+      - heading: Factory Method
+        intent: Subclass decides which concrete class to instantiate.
+        when: Family of types selected at runtime via a single entry point.
+        flavors: "Static factory (Integer.valueOf), parameterized factory, registry-backed factory."
+        example: Vehicle factory in parking lot; ShapeFactory; java.util.Calendar.getInstance().
+        watch: Don't reach for it when a simple constructor does; explosion of factory classes is a smell.
+
+      - heading: Abstract Factory
+        intent: Create families of related objects without specifying concrete classes.
+        when: Cross-cutting product families (e.g., per-OS UI widgets).
+        example: Pizza ingredient factory per region (NY vs Chicago); javax.xml.parsers.DocumentBuilderFactory.
+        watch: Adding a new product type touches every factory — keep the product family stable.
+
+      - heading: Builder
+        intent: Step-by-step construction; immutable final object.
+        when: Many optional fields; want fluent API and validation at build().
+        flavors: "Classic GoF (director + builder), Joshua-Bloch fluent builder, telescoping-constructor replacement."
+        example: Pizza builder, HTTP request builder, JIRA issue builder, StringBuilder, Stream.Builder.
+        watch: Overkill for ≤4 params; ensure required fields are enforced at build().
+
+      - heading: Prototype
+        intent: Clone an existing object instead of constructing anew.
+        when: Construction is expensive and you have a template.
+        flavors: "Shallow vs deep clone; prototype registry."
+        example: Cell prototypes in a game grid; document templates; Java Object.clone().
+        watch: Deep clone of cyclic graphs; clone() contract is notoriously fragile — copy-constructors are often cleaner.
+
+  - heading: Structural
+    entries:
+      - heading: Adapter
+        intent: Wrap an incompatible interface to look like the expected one.
+        when: Integrating legacy / 3rd-party APIs into your domain.
+        flavors: "Object adapter (composition, preferred), class adapter (multiple inheritance, limited in Java/Go)."
+        example: PaymentGateway adapter wrapping Stripe + Razorpay + UPI; java.io.InputStreamReader (byte→char).
+        watch: Don't let adapters leak vendor types upward — keep the domain interface clean.
+
+      - heading: Bridge
+        intent: Decouple abstraction from implementation; they vary independently.
+        when: You have orthogonal axes of variation (shape × renderer).
+        example: Notification (abstraction) × Channel (impl); JDBC DriverManager × Driver.
+        watch: Easy to confuse with Adapter — Bridge is designed up-front, Adapter is retrofit.
+
+      - heading: Composite
+        intent: Treat individual objects and compositions uniformly.
+        when: Tree-shaped data (filesystem, UI tree, org chart).
+        example: File / Directory in Linux FS design; Trello Card / Checklist; React component tree; java.awt.Container.
+        watch: Leaf vs composite type-safety — operations like add()/remove() are meaningless on leaves.
+
+      - heading: Decorator
+        intent: Add behavior to an object without subclassing.
+        when: Optional cross-cutting concerns (logging, caching, auth).
+        example: Pizza toppings; HTTP middleware; Java IO streams (BufferedReader wraps FileReader); Python @decorator syntax.
+        watch: Deep wrapper stacks become hard to debug; equality/identity surprises.
+
+      - heading: Facade
+        intent: Single high-level interface over a complex subsystem.
+        when: Hide internal modules behind one clean entry point.
+        example: OrderService hides inventory + payment + shipping; SLF4J over multiple logging backends.
+        watch: God-facades that grow into a kitchen-sink class — split by use case.
+
+      - heading: Flyweight
+        intent: Share fine-grained state to reduce memory.
+        when: Massive count of objects with shared intrinsic state.
+        how: Split state into intrinsic (shared, immutable) and extrinsic (passed in per call); intern via a pool.
+        example: Character glyphs in a text editor; chess piece sprites; Integer.valueOf cache (-128..127); String intern pool.
+        watch: Only worth it when memory is the bottleneck; thread-safety of the pool matters.
+
+      - heading: Proxy
+        intent: Stand-in that controls access (lazy, remote, protective, cache).
+        when: Add lazy init, access control, remote call, or caching transparently.
+        flavors: "Virtual (lazy), remote (RPC stub), protection (ACL), caching, smart reference (ref-counting)."
+        example: Hibernate lazy proxy; gRPC client stub; DB connection proxy; Spring AOP proxies.
+        watch: Hidden network/IO behind a plain-looking call — surprise latency.
+
+  - heading: Behavioral
+    entries:
+      - heading: Strategy
+        intent: Encapsulate interchangeable algorithms.
+        when: Multiple ways to do the same job, chosen at runtime.
+        example: Splitwise share strategies (equal/exact/percent); sort comparators; payment-method selection; compression algorithm choice.
+        watch: If you only ever have one strategy, this is over-engineering — just write a function.
+
+      - heading: Observer
+        intent: Publish-subscribe — observers notified of subject changes.
+        when: Loose coupling between event producer and reactors.
+        flavors: "Push (subject sends data) vs pull (observer fetches); sync vs async dispatch."
+        example: Auction bid notifications, UI listeners, news-feed fanout, java.util.Observable (deprecated), RxJava.
+        watch: Memory leaks from forgotten unsubscribes; ordering not guaranteed; cascading updates ("observer storms").
+
+      - heading: State
+        intent: Object changes behavior based on internal state.
+        when: Big switch on state in many methods — extract to state classes.
+        example: Order lifecycle (placed → paid → shipped → delivered); elevator states; TCP connection state machine.
+        watch: Distinguish from Strategy — State transitions are internal and rule-driven; Strategy is externally chosen.
+
+      - heading: Command
+        intent: Encapsulate a request as an object.
+        when: Undo/redo, queueing, logging, macro recording.
+        example: ATM transactions; text-editor undo stack; job scheduler; Runnable in java.util.concurrent.
+        watch: Pair with Memento for non-trivial undo; serializable commands need versioning.
+
+      - heading: Chain of Responsibility
+        intent: Pass request along a chain until one handler claims it.
+        when: Multiple potential handlers with priority order.
+        example: Logger levels (DEBUG → INFO → WARN → ERROR); middleware chain (Express/Koa); ATM cash dispenser; Servlet filter chain.
+        watch: A request can fall off the end unhandled — always have a terminal handler.
+
+      - heading: Mediator
+        intent: Centralize complex many-to-many communication.
+        when: Components only know the mediator, not each other.
+        example: Air-traffic controller; chat room; Kubernetes scheduler; java.util.concurrent.Executor.
+        watch: Mediator becomes a god-object — split by concern when it grows.
+
+      - heading: Template Method
+        intent: Skeleton in base class; subclasses fill in steps.
+        when: Algorithm structure fixed; specific steps vary.
+        example: Game-turn loop; data-pipeline ETL steps; java.util.AbstractList; JUnit setUp/test/tearDown.
+        watch: Inheritance over composition — favor Strategy if subclasses share little else.
+
+      - heading: Iterator
+        intent: Sequential access to a collection without exposing internals.
+        when: Custom traversal order over a tree/graph/aggregate.
+        flavors: "External (caller drives) vs internal (collection drives); fail-fast vs fail-safe."
+        example: Java Iterator / Python __iter__; tree DFS/BFS iterators; database cursor.
+        watch: Concurrent modification semantics; lazy iterators that hold resources need closing.
+
+      - heading: Visitor
+        intent: Operations on a heterogeneous object tree without modifying it.
+        when: Many unrelated operations across a stable hierarchy.
+        how: Double-dispatch — element.accept(visitor) calls visitor.visit(this).
+        example: AST type-check / code-gen passes; tax calculation per item type; XML/DOM tree traversal.
+        watch: Adding a new element type breaks every visitor — only use when the hierarchy is stable.
+
+      - heading: Memento
+        intent: Capture+restore object state without exposing internals.
+        when: Undo, snapshots, save/load.
+        example: 2048-game undo; editor versioning; Spring's TransactionStatus.
+        watch: Memory cost of keeping snapshots — bound the history or use diffs.
+
+  - heading: Concurrency (worth knowing for LLD)
+    entries:
+      - heading: Producer-Consumer
+        intent: Decouple item creation from item processing via a bounded buffer.
+        when: Rate mismatch between producer and consumer; smoothing bursts.
+        example: BlockingQueue + worker threads; log shipper; print spooler.
+        watch: Backpressure when the buffer fills — drop, block, or shed load?
+
+      - heading: Read-Write Lock
+        intent: Many concurrent readers, exclusive writer.
+        when: Read-heavy shared state.
+        example: ReentrantReadWriteLock; cache with rare invalidations.
+        watch: Writer starvation; upgrade-from-read deadlocks.
+
+      - heading: Active Object
+        intent: Method call → message queued → executed on object's own thread.
+        when: Per-object serialized execution without exposing locks.
+        example: Akka actors; UI event loop.
+        watch: Hidden async boundary — return values must be futures/callbacks.
+
+  - heading: Beyond GoF (worth knowing)
+    entries:
+      - heading: Object Pool
+        intent: Reuse expensive-to-create instances from a managed pool.
+        when: Threads, DB connections, large buffers.
+        example: HikariCP; thread pool in TaskService; Netty ByteBuf pool.
+        watch: Leaks if borrowers forget to return; sizing wrong starves or wastes.
+
+      - heading: Repository
+        intent: Domain-facing facade over persistence.
+        when: DDD-style separation of business logic from storage details.
+        example: UserRepository over JPA; in-memory test double; Spring Data repositories.
+        watch: Don't leak ORM types (Session, EntityManager) above the repo boundary.
+
+      - heading: Dependency Injection
+        intent: Receive collaborators from outside (constructor / setter).
+        when: Anywhere — improves testability, swappable implementations.
+        flavors: "Constructor (preferred — required deps), setter (optional deps), field/annotation (Spring @Autowired)."
+        example: Spring DI; constructor-injected payment provider; React props as DI.
+        watch: Constructor explosion is a smell — too many deps means the class does too much.
+
+      - heading: Specification
+        intent: Encapsulate a business rule as a queryable object.
+        when: Composable filters / business policies.
+        example: '"Account is overdue AND tier=premium" as ANDed specifications; Spring Data JPA Specification.'
+        watch: Translation to SQL — complex specs can produce awful query plans.
+
+      - heading: Unit of Work
+        intent: Track changes within a business transaction and flush atomically.
+        when: Multi-entity updates that must commit/rollback as one.
+        example: Hibernate Session; EF Core DbContext; DB transaction with deferred writes.
+        watch: Long-lived UoW = stale data + lock contention; scope tightly.
+
+      - heading: Null Object
+        intent: Substitute a benign "do-nothing" object for null.
+        when: Repeated null checks litter the code.
+        example: Optional.empty() in spirit; NoOpLogger; empty Collections.emptyList().
+        watch: Hides bugs if "no result" should have been an error — be deliberate.

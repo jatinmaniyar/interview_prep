@@ -1,0 +1,110 @@
+section: companies
+title: Company-Specific Notes
+display: cards
+sources:
+  - TeamBlind threads (US + India)
+  - Glassdoor verified interview reports
+  - LeetCode Discuss "Companies" tags
+  - Reddit r/cscareerquestions
+  - Exponent company guides
+description: >
+  Patterns synthesized from public interview reports. Treat as priors, not
+  certainties — process changes year to year. Always do your own due-diligence
+  per recruiter notes before the round.
+
+entries:
+  - heading: Amazon
+    style: "LP-driven; depth + scale focus."
+    bullets:
+      - "Expect explicit Leadership-Principles mapping in your design rationale (Customer Obsession, Ownership, Are-Right-A-Lot, Invent-and-Simplify)."
+      - "Strong LLD bias for SDE-1 / SDE-2. Common: Parking Lot, Logger, Cache, Rate Limiter, Order Service, Notification."
+      - "HLD at SDE-2+: Amazon Prime / Cart / Payment / Inventory. Scale numbers expected; cost talked about."
+      - "Bar Raiser round will probe trade-offs and what you'd do differently. Have a 'lessons learned' answer ready."
+
+  - heading: Google
+    style: "Algorithmic + distributed-systems heavy; first-principles."
+    bullets:
+      - "L4/L5: cleaner LLD with concurrency; senior+: HLD with scale (web-search, distributed cache, queue, file-system)."
+      - "Expects you to reason about consistent hashing, consensus (Paxos/Raft), and shard placement."
+      - "Strong on data-modeling and choice of DB. Knows BigTable / Spanner internals — be honest if you don't."
+      - "Code-on-paper feel even in HLD — they like specificity."
+
+  - heading: Meta (Facebook)
+    style: "Product design depth; news-feed / messenger / social-graph variants."
+    bullets:
+      - "E5/E6 design rounds often: News Feed, Live Comments, Notification, Instagram, Messenger."
+      - "Two of these for E5+ (Product Design + Systems Design). Different rubrics — don't confuse them."
+      - "Heavy on push vs pull (fanout-on-write vs read), hot users, ranking pipelines."
+      - "Wants narrative — story of a request from tap to render."
+
+  - heading: Microsoft
+    style: "Balanced LLD + HLD; OOP rigor."
+    bullets:
+      - "Strong LLD focus at Azure / M365 — Design Calendar, OneDrive, Teams chat, etc."
+      - "Expects clean OOP, SOLID, named patterns. Code in C# / Java cleanly."
+      - "Architectural discussion grows for senior+; less algorithmic than Google."
+
+  - heading: Apple
+    style: "LLD-heavy; OS / platform focus."
+    bullets:
+      - "Team-dependent. Hardware-adjacent teams emphasize concurrency, memory, low-level."
+      - "Common: file-system, calendar, contacts, notification, sync."
+      - "Polish + correctness > scale theater. They notice sloppy class design."
+
+  - heading: Uber / Lyft / DoorDash
+    style: "Real-time matching / geo / dispatch."
+    bullets:
+      - "HLD: Ride-share, surge pricing, ETA, dispatch optimization, delivery."
+      - "LLD: Splitwise, fare calculator, fraud rules, trip lifecycle."
+      - "Geo-indexing (S2, geohash, H3) comes up — know one."
+      - "Real-time event delivery (websockets / push) is a deep-dive favorite."
+
+  - heading: Netflix
+    style: "Streaming, observability, chaos."
+    bullets:
+      - "HLD: video pipeline, recommendation, CDN strategy, multi-region."
+      - "Cares about resilience — chaos engineering, circuit breakers, fallbacks."
+      - "Microservices-heavy; service mesh discussions show up."
+
+  - heading: Airbnb
+    style: "Booking / search / pricing."
+    bullets:
+      - "HLD: Search, listings, availability calendar, dynamic pricing, payments."
+      - "LLD: Reservation lifecycle, cancellation policy engine."
+      - "Trust / safety pipeline is a real subsystem they'll probe."
+
+  - heading: Stripe
+    style: "Payments correctness; idempotency obsession."
+    bullets:
+      - "Money systems — idempotency keys, retry semantics, double-spend prevention top of mind."
+      - "API design depth: versioning, backward compat, audit trail."
+      - "Reliability + observability — they run rigorous bar."
+
+  - heading: LinkedIn
+    style: "Social graph + feed + jobs matching."
+    bullets:
+      - "HLD: News feed, jobs recommendation, search, notification."
+      - "Graph-DB discussions common; Kafka is the cultural backbone."
+      - "Senior+: messaging, profile distribution at scale."
+
+  - heading: Atlassian / Asana / Notion (Productivity SaaS)
+    style: "Collaboration + real-time + multi-tenant."
+    bullets:
+      - "HLD: Collab editing (CRDT/OT), real-time presence, search, notifications."
+      - "LLD: Trello-board, Jira ticket lifecycle, permission system."
+      - "Multi-tenant data isolation often a deep-dive."
+
+  - heading: Indian unicorns (Flipkart, Razorpay, Swiggy, Zomato, Cred, PhonePe)
+    style: "Real-world scale; machine coding rounds are common."
+    bullets:
+      - "Machine-coding rounds (LLD with code, 1-2 hours, working program required) common at SDE-2+."
+      - "Common LLD: Splitwise, BookMyShow seat booking, food-delivery dispatch, IRCTC waitlist."
+      - "Concurrency + clean OOP scrutinized — synchronized blocks, race conditions, idempotency."
+      - "HLD: payment gateway, ledger, real-time order tracking, surge handling."
+
+  - heading: HFT / Quant (Two Sigma, Citadel, Jane Street, Hudson River)
+    style: "Latency-obsessed; low-level + concurrency."
+    bullets:
+      - "Order book, matching engine, market-data fanout."
+      - "Latency budgets in microseconds. Lock-free queues, ring buffers, mechanical sympathy."
+      - "C++ concurrency depth expected at senior levels."

@@ -1,0 +1,118 @@
+section: tips
+title: Interview Tricks, Tips & Anti-Patterns
+display: sections
+sources:
+  - Hello Interview interview guides
+  - Exponent System Design course
+  - Gaurav Sen YouTube — common pitfalls
+  - Tech Dummies Narendra L — narration patterns
+  - TeamBlind threads + Reddit r/systemdesign
+description: >
+  Concrete, bite-sized advice. The technical knowledge is only half — the
+  other half is structure, narration, and not stepping on the obvious mines.
+
+groups:
+  - heading: Opening 5 minutes (don't skip)
+    items:
+      - heading: Ask clarifying questions, not "any constraints?"
+        body: "Be specific — 'Is this for desktop, mobile, or both? Read-heavy or write-heavy? What's the latency budget?' Generic 'any constraints?' wastes the slot."
+      - heading: Mirror the prompt back
+        body: "Restate the problem in your own words and get a nod. Catches misunderstandings before you build the wrong thing."
+      - heading: Negotiate scope explicitly
+        body: "'I'm going to focus on X, Y, Z and skip W for now — sound good?' Locks in what success looks like."
+      - heading: Write requirements down (functional + NFR)
+        body: "On the whiteboard / shared doc. Refer back to them later when justifying tradeoffs."
+
+  - heading: Narration
+    items:
+      - heading: Say which step you're on
+        body: "'Now I'm doing back-of-envelope estimation.' Interviewers grade structure — make it visible."
+      - heading: Think out loud
+        body: "Silence is a black box. Even half-formed thoughts beat 30 seconds of silence — they can redirect you."
+      - heading: Defend choices with one sentence
+        body: "Don't say 'I'll use Redis.' Say 'I'll use Redis because reads dominate and we need sub-ms latency on the hot set.'"
+      - heading: Acknowledge alternatives
+        body: "'Cassandra works too if write-heavy; I'm picking Postgres because we need joins for the dashboard.'"
+      - heading: Name the pattern you're using
+        body: "'This is a Strategy pattern' — explicit vocabulary scores higher than implicit competence."
+
+  - heading: Drawing & whiteboard
+    items:
+      - heading: Boxes first, arrows later
+        body: "Place all major components, then draw read paths in one color and write paths in another."
+      - heading: Six to eight boxes
+        body: "More than that and the interviewer loses the thread. Group related things into one labeled box."
+      - heading: Label every arrow with what flows through it
+        body: "Don't draw nameless arrows — annotate with payload, protocol, or event name."
+      - heading: Don't redraw — extend
+        body: "When you need to deep dive, draw a side panel for that component, not a new diagram."
+
+  - heading: Estimation
+    items:
+      - heading: Round aggressively
+        body: "30,000 → 'about 10^4.5'. Precision suggests false confidence."
+      - heading: Powers of 2 over 10
+        body: "Storage math: 2^30 bytes = 1 GB, 2^20 = 1 MB. Saves embarrassing factor-of-1024 errors."
+      - heading: State your assumptions
+        body: "'Assume 100M DAU, 10 actions/user/day' — wrong assumption is fine; unstated assumption is not."
+      - heading: Cross-check with intuition
+        body: "If your math says 'one Postgres node handles Twitter' — recheck."
+
+  - heading: Deep dives
+    items:
+      - heading: Let the interviewer pick the dive
+        body: "'Where would you like me to go deeper — the timeline, the search, or the storage layer?' Optimizes for what they want to grade."
+      - heading: One layer deeper than your peers
+        body: "Most candidates say 'we cache it.' You say 'cache-aside in Redis cluster, TTL 60s, refresh on miss, stampede protection via single-flight.'"
+      - heading: Be specific about data structures
+        body: "Not 'a queue' — a Kafka topic with 24 partitions keyed by user_id, retention 7 days."
+      - heading: Quantify the win
+        body: "'This drops the p99 from 200ms to 30ms by avoiding the DB round-trip.'"
+
+  - heading: Time management
+    items:
+      - heading: Watch the clock at 20 min and 35 min
+        body: "20: should be in step 5 (HLD). 35: must have started step 7 (scale-up)."
+      - heading: If stuck, narrate the dilemma
+        body: "'I'm weighing X vs Y — X is simpler but Y is more scalable. Want me to pick?'  Often unsticks both of you."
+      - heading: Leave a runway for trade-offs
+        body: "Trade-off + observability talk in the last 5 min is what separates 'good' from 'great' grades."
+
+  - heading: When you don't know something
+    items:
+      - heading: Don't bluff
+        body: "Interviewers detect bullshit. Say 'I haven't worked with X — I'd reach for it for Y reason; correct me if that's off.'"
+      - heading: Reason from primitives
+        body: "If you don't know the named technology, describe what you'd build to solve the underlying problem."
+      - heading: Ask one question, then move on
+        body: "'Does X support transactions?' Then incorporate the answer and keep going."
+
+  - heading: Common Anti-Patterns (RED FLAGS)
+    items:
+      - heading: Premature sharding
+        body: "Don't shard before you've justified you can't fit on one big node. 'Just shard it' without picking a key signals junior."
+      - heading: Hand-wavy CAP claim
+        body: "Saying 'I pick CP' without explaining what fails under partition is worse than not mentioning CAP at all."
+      - heading: '"We''ll add caching" without specifying'
+        body: "Always specify: layer (in-process / L2 / CDN), key, TTL, invalidation, stampede protection."
+      - heading: No observability story
+        body: "If you finish without saying metrics/logs/traces/alerts, that's a junior-grade ending."
+      - heading: Drawing 20 microservices for a simple feature
+        body: "Service count is not skill. Justify each split — same lifecycle, same scale, same team usually means one service."
+      - heading: Promising 5 nines without a plan
+        body: "Don't claim 5 nines unless you've actually mapped out multi-region, automated failover, chaos testing, and budget."
+      - heading: Skipping idempotency on writes
+        body: "Payment / order / mutation APIs without idempotency keys is a guaranteed follow-up question. Add it preemptively."
+      - heading: Ignoring failure modes
+        body: "Don't end without 'when X fails, Y happens, and recovery looks like Z.' At least one such scenario per HLD."
+      - heading: Distributed monolith
+        body: "Microservices that all deploy together, share a DB, and call each other synchronously. Worst of both worlds."
+      - heading: Reinventing the wheel
+        body: "If you're describing a tool that exists (Kafka, Redis, Elasticsearch), name it and move on. Don't accidentally invent it from scratch."
+
+  - heading: Closing strong
+    items:
+      - heading: Recap in one minute
+        body: "'I designed X with components A/B/C. Key trade-off was D. Failure mode I handled was E. If we had more time I'd go deeper on F.' Always end on this."
+      - heading: Show curiosity
+        body: "'Out of curiosity — how does your team actually solve this at scale?' Last impression is engagement."

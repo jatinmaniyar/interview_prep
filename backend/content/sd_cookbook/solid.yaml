@@ -1,0 +1,79 @@
+section: solid
+title: SOLID & OOP Principles
+display: sections
+sources:
+  - Refactoring.Guru
+  - Robert C. Martin (Uncle Bob) — published SOLID essays
+  - Oracle Java Tutorials
+description: >
+  LLD interviewers expect you to NAME the principle as you apply it. Don't
+  invent your own justification — these are the standard vocabulary.
+
+groups:
+  - heading: SOLID
+    items:
+      - heading: "S — Single Responsibility"
+        body: >
+          A class should have one reason to change. If you find yourself
+          using "and" to describe what a class does, split it.
+        smell: "OrderService that also sends emails AND writes audit logs."
+        fix: "Order → OrderService; Email → NotificationService; Audit → AuditLogger."
+
+      - heading: "O — Open/Closed"
+        body: >
+          Open for extension, closed for modification. Add new behavior by
+          adding code, not by editing existing classes.
+        smell: "if (type == 'card') ... else if (type == 'upi') ... — every new payment type edits this switch."
+        fix: "PaymentProcessor interface + CardProcessor / UPIProcessor / WalletProcessor implementations."
+
+      - heading: "L — Liskov Substitution"
+        body: >
+          Subtypes must be usable wherever the parent type is expected,
+          without surprising callers.
+        smell: "Square inherits Rectangle; setWidth() breaks Rectangle's contract."
+        fix: "Don't model 'is-a' when it's only 'looks-like-a'. Prefer composition or a Shape interface."
+
+      - heading: "I — Interface Segregation"
+        body: >
+          Many small client-specific interfaces beat one fat interface.
+          Don't force a class to implement methods it doesn't use.
+        smell: "IMachine with print() + scan() + fax() — a simple printer must throw on scan/fax."
+        fix: "IPrinter, IScanner, IFax — combine via composition where needed."
+
+      - heading: "D — Dependency Inversion"
+        body: >
+          Depend on abstractions, not concretions. High-level modules
+          shouldn't import low-level ones — both depend on interfaces.
+        smell: "OrderService directly news up a StripeClient inside its method."
+        fix: "Constructor takes a PaymentProvider interface; Stripe is one impl wired at boot."
+
+  - heading: OO Basics (in case they ask)
+    items:
+      - heading: Encapsulation
+        body: "Hide internal state; expose intent via methods. Private fields, controlled mutation."
+      - heading: Abstraction
+        body: "Model only what's relevant to the problem. A Car for ride-share doesn't need engine timing details."
+      - heading: Inheritance
+        body: "'is-a' relationship; share contract + default behavior. Use sparingly — composition usually wins."
+      - heading: Polymorphism
+        body: "One interface, many implementations. The runtime dispatch you rely on for Strategy/State patterns."
+
+  - heading: Composition over Inheritance
+    body: >
+      When in doubt, compose. Inheritance is rigid; composition lets you
+      assemble behavior at runtime. If an interviewer pushes you, justify
+      every "extends" — most should be "implements" + a field.
+    items:
+      - heading: Has-a beats is-a
+        body: "Car has-an Engine (composition) beats Car extends Engine."
+      - heading: Favor mixin/strategy patterns
+        body: "Inject behavior via interfaces — easier to test, easier to swap."
+
+  - heading: DRY / KISS / YAGNI (companion principles)
+    items:
+      - heading: DRY (Don't Repeat Yourself)
+        body: "Each piece of knowledge has ONE authoritative representation."
+      - heading: KISS (Keep It Simple, Stupid)
+        body: "Prefer the simpler design that meets the requirements. Complexity must justify itself."
+      - heading: YAGNI (You Aren't Gonna Need It)
+        body: "Don't build for hypothetical future needs. Build for the requirements you have."

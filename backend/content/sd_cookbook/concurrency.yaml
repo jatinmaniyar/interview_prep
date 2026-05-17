@@ -1,0 +1,123 @@
+section: concurrency
+title: Concurrency Primitives
+display: cards
+sources:
+  - Java Concurrency in Practice (Goetz et al.)
+  - Oracle Java Tutorials — Concurrency
+  - Baeldung — Java Concurrency
+description: >
+  LLD rounds love thread-safety follow-ups. Know what each primitive *guarantees*
+  and what it *costs*. "Add synchronized" is not an answer — name the actual
+  pattern (read-write lock, immutable snapshot, copy-on-write, etc.).
+
+groups:
+  - heading: Locks
+    entries:
+      - heading: Mutex / synchronized
+        intent: Mutual exclusion — only one thread inside the critical section.
+        cost: Contention serializes everything; blocked threads sleep.
+        watch: Deadlock if locks acquired in inconsistent order; always lock in the same order.
+
+      - heading: Read-Write Lock
+        intent: Many readers OR one writer; readers don't block readers.
+        when: Read-heavy shared state (config cache, in-memory index).
+        watch: Writer starvation under heavy reads; some impls bias toward writers.
+
+      - heading: Reentrant Lock
+        intent: Same thread can re-acquire a lock it already holds.
+        when: Recursive code paths; nested method calls into the same lock.
+        examples: "java.util.concurrent.locks.ReentrantLock; Python threading.RLock."
+
+      - heading: Spinlock
+        intent: Busy-wait until lock is available; no kernel sleep.
+        when: Very short critical sections on multi-core; avoid on single-core.
+        watch: Burns CPU; bad fit for contended or long-held locks.
+
+      - heading: Stamped Lock
+        intent: Optimistic-read mode + write lock; readers validate stamp.
+        when: Read-mostly with rare writes; Java 8+ specifically.
+
+  - heading: Synchronization Primitives
+    entries:
+      - heading: Semaphore
+        intent: Counting permit pool; N concurrent holders allowed.
+        when: Rate-limiting concurrent access (connection pool, parallelism cap).
+
+      - heading: Condition Variable / wait-notify
+        intent: Threads wait until a predicate becomes true; signal wakes one or all.
+        when: Producer/consumer with bounded buffer; "wait until ready" patterns.
+        watch: Always wait in a loop (spurious wakeups); always hold the mutex.
+
+      - heading: Barrier
+        intent: N threads must all arrive before any proceeds.
+        when: Parallel phases (compute → sync → compute).
+        examples: "CyclicBarrier, CountDownLatch (one-shot)."
+
+      - heading: CountDownLatch
+        intent: Wait for N events to complete.
+        when: Fan-out then join; startup gate.
+
+      - heading: Future / Promise / CompletionStage
+        intent: Placeholder for a value computed asynchronously.
+        when: Composing async work pipelines.
+
+  - heading: Lock-Free / Wait-Free
+    entries:
+      - heading: Atomic types (CAS)
+        intent: Compare-and-swap primitives for ints / refs.
+        when: Counters, single-field state updates without locks.
+        examples: "AtomicInteger, AtomicReference; ABA-problem mitigations needed for pointers."
+
+      - heading: Concurrent collections
+        intent: Thread-safe data structures designed for high contention.
+        examples: "ConcurrentHashMap (segmented), ConcurrentLinkedQueue, CopyOnWriteArrayList."
+        watch: "Iterators may see a snapshot; size() can be approximate."
+
+      - heading: Lock-free queue
+        intent: SPSC/MPMC queues that never block producers/consumers.
+        examples: "Disruptor; java.util.concurrent.ConcurrentLinkedQueue."
+        watch: Memory ordering subtleties (release/acquire fences).
+
+  - heading: Immutability & Functional patterns
+    entries:
+      - heading: Immutable objects
+        intent: Construct fully; never mutate. Inherently thread-safe.
+        when: Value types, configuration, snapshots.
+        examples: "String, java.time.* types, Scala case classes, Records."
+
+      - heading: Copy-on-Write
+        intent: Reads see a stable snapshot; writes clone-and-swap.
+        when: Read-heavy with rare writes (listener lists, route tables).
+        examples: "CopyOnWriteArrayList; functional persistent data structures."
+
+      - heading: Thread-local storage
+        intent: Per-thread copy of a variable — no sharing.
+        when: Avoid sharing entirely (parsers, formatters, request context).
+        watch: Memory leaks in thread pools (always remove() in finally).
+
+  - heading: Common Bugs to Name
+    entries:
+      - heading: Race condition
+        intent: Result depends on thread interleaving.
+        smell: "Read-modify-write without atomicity (`if (!x) x = ...`)."
+        fix: Atomic op, lock, or compare-and-swap.
+
+      - heading: Deadlock
+        intent: Two+ threads each holding a lock the other needs.
+        prevent: Global lock ordering; try-lock with timeout; lock-free designs.
+
+      - heading: Livelock
+        intent: Threads actively respond to each other and make no progress.
+        prevent: Backoff; randomized retry.
+
+      - heading: Starvation
+        intent: A thread never gets the resource (priority inversion / writer starvation).
+        fix: Fair locks; queue-based scheduling.
+
+      - heading: Double-checked locking
+        intent: Lazy init pattern that's broken without volatile (in older JMM).
+        modern: "Java 5+ with volatile, or static-holder idiom — both safe."
+
+      - heading: Memory visibility
+        intent: One thread's write isn't visible to another without synchronization.
+        fix: volatile, synchronized, atomics, or happens-before via concurrent collections.

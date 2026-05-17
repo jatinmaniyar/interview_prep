@@ -1,0 +1,101 @@
+section: framework
+title: Interview Framework — The 7-Step Structure
+display: framework
+sources:
+  - Hello Interview Delivery Framework
+  - Exponent System Design Course
+  - ByteByteGo 4-step approach
+  - donnemartin/system-design-primer study guide
+description: >
+  A repeatable spine for any HLD round. Spend ~5 min per step on a 45-min
+  interview; if you only have 30 min, compress steps 6–7. Always say out loud
+  which step you're in — interviewers grade structure as much as content.
+
+entries:
+  - step: 1
+    title: Clarify scope & requirements
+    duration: 5 min
+    prompts:
+      - "Who are the users? Read-heavy or write-heavy?"
+      - "What are the core 3-4 features? What's explicitly out of scope?"
+      - "What's the latency / availability / consistency bar?"
+      - "Mobile + web? Geo distribution? Any compliance constraints?"
+    pitfalls:
+      - "Diving into architecture before agreeing on scope — you'll design the wrong thing."
+      - "Listing 10 features and trying to design all of them."
+    output: A short list of functional + non-functional requirements both sides agreed on.
+
+  - step: 2
+    title: Back-of-envelope estimates
+    duration: 5 min
+    prompts:
+      - "DAU? Peak QPS = DAU × actions/user / 86400 (×3-5 for peak)"
+      - "Storage growth/year = items × size × retention"
+      - "Bandwidth = QPS × payload size"
+      - "Memory for hot set = working-set size × replication"
+    pitfalls:
+      - "Skipping this — interviewers use it to justify your tech choices later."
+      - "Pretending precision you don't have. Round aggressively, state assumptions."
+    output: 3-4 numbers (QPS, storage, bandwidth, memory) that drive every later decision.
+
+  - step: 3
+    title: Define the API
+    duration: 5 min
+    prompts:
+      - "REST/gRPC endpoints or event topics — pick one style and commit."
+      - "Params, return shape, auth, pagination, idempotency keys for writes."
+      - "Synchronous vs asynchronous responses."
+    pitfalls:
+      - "Designing 15 endpoints. Stick to the 3-5 driven by the core features."
+      - "Missing idempotency on payment / order / mutation endpoints."
+    output: 3-5 endpoint signatures the system must serve.
+
+  - step: 4
+    title: Data model
+    duration: 5 min
+    prompts:
+      - "Entities, primary keys, relationships."
+      - "Hot tables vs cold (archive) tables."
+      - "Which queries drive which indexes."
+      - "Partition / shard key — pick early; it constrains everything downstream."
+    pitfalls:
+      - "Drawing an ER diagram of every nice-to-have entity."
+      - "Not picking a shard key, then hand-waving 'we'll shard it'."
+    output: 3-5 tables with PK, partition key, and key indexes.
+
+  - step: 5
+    title: High-level architecture
+    duration: 8 min
+    prompts:
+      - "Client → LB → service tier → cache → DB. Async workers if needed."
+      - "Place CDN, queues, search index where they earn their keep."
+      - "Show one diagram, narrate the read path AND the write path."
+    pitfalls:
+      - "Adding components (Kafka, ELK, Spark) without justifying them."
+      - "Drawing 20 boxes and 50 arrows — keep it to 6-8 boxes."
+    output: One clean diagram + verbal read-path + write-path walkthrough.
+
+  - step: 6
+    title: Deep dives — pick 1-2
+    duration: 10 min
+    prompts:
+      - "Which component is most load-bearing? Dive there first."
+      - "Sharding strategy? Cache invalidation? Hot-key handling? Consistency?"
+      - "Be specific: name the data structure, the algorithm, the numbers."
+    pitfalls:
+      - "Trying to deep-dive everything. Pick 1-2 with the interviewer's nod."
+      - "Hand-wavy answers like 'we'll add caching' without specifying layer/eviction/invalidation."
+    output: One detailed sketch of the hot-spot subsystem.
+
+  - step: 7
+    title: Scale-up, failure modes, observability
+    duration: 5 min
+    prompts:
+      - "Where does this break at 10×? Identify the next bottleneck."
+      - "What fails: nodes, partitions, datacenter? Recovery story?"
+      - "Metrics, logs, traces, dashboards, alerts."
+      - "Cost ballpark — is this $/month or $K/month?"
+    pitfalls:
+      - "Skipping observability. Interviewers flag this as junior."
+      - "Promising 9 nines without explaining how."
+    output: Bottleneck → mitigation list + monitoring plan + cost estimate.

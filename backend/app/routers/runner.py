@@ -7,9 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Problem, Submission, TestCase, UserProgress
+from app.models import Problem, Solution, Submission, TestCase, UserProgress
 from app.runner.cpp_runner import cleanup, compile_cpp, run_cpp_binary
-from app.runner.python_runner import run_python
+from app.runner.python_runner import extract_runnable_solution, run_python
 
 router = APIRouter(tags=["runner"])
 
@@ -25,6 +25,31 @@ def _method_name(problem: Problem) -> str:
     return problem.method_signature or "solve"
 
 
+def _auto_validate(db: Session, problem: Problem) -> None:
+    """Run unvalidated test cases through the reference solution and mark them validated."""
+    ref = db.execute(
+        select(Solution).where(
+            Solution.problem_id == problem.id, Solution.language == "python"
+        )
+    ).scalar_one_or_none()
+    if not ref:
+        return
+    method = _method_name(problem)
+    ref_code = extract_runnable_solution(ref.code, method)
+    unvalidated = db.execute(
+        select(TestCase).where(
+            TestCase.problem_id == problem.id, TestCase.validated == False  # noqa: E712
+        )
+    ).scalars().all()
+    for tc in unvalidated:
+        args = json.loads(tc.input_json)
+        result = run_python(ref_code, method, args, harness=problem.test_harness_python)
+        if result["ok"]:
+            tc.expected_output_json = json.dumps(result["output"])
+            tc.validated = True
+    db.commit()
+
+
 def _execute(language: str, code: str, problem: Problem, tests: list[TestCase]) -> dict:
     method = _method_name(problem)
     results = []
@@ -35,7 +60,7 @@ def _execute(language: str, code: str, problem: Problem, tests: list[TestCase]) 
         for tc in tests:
             args = json.loads(tc.input_json)
             expected = json.loads(tc.expected_output_json)
-            r = run_python(code, method, args)
+            r = run_python(code, method, args, harness=problem.test_harness_python)
             ok = r["ok"] and r["output"] == expected
             if ok:
                 passed += 1
@@ -122,7 +147,14 @@ def submit_code(req: RunRequest, db: Session = Depends(get_db)):
         )
     ).scalars().all()
     if not tests:
-        raise HTTPException(400, "No validated tests available for this problem")
+        _auto_validate(db, problem)
+        tests = db.execute(
+            select(TestCase).where(
+                TestCase.problem_id == req.problem_id, TestCase.validated == True  # noqa: E712
+            )
+        ).scalars().all()
+    if not tests:
+        raise HTTPException(400, "No tests available for this problem")
 
     outcome = _execute(req.language, req.code, problem, tests)
     sub = Submission(
